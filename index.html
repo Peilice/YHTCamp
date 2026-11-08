@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- demo 階段：禁止搜尋引擎收錄。正式上線時請刪除這一行（規格書 §13.2） -->
+  <meta name="robots" content="noindex">
+  <title>【範例】2026 冬令營</title>
+  <meta name="description" content="【範例】2026 冬令營報名資訊、最新公告、營隊注意事項與報到單下載。">
+  <style>
+    :root {
+      --green: #2F6B4F;
+      --green-dark: #234F3B;
+      --green-soft: #EEF4F0;
+      --text: #1E2A24;
+      --muted: #4A5A51;
+      --line: #D5E0D9;
+      --bg: #FFFFFF;
+      --page-bg: #F2F6F3;
+      --focus: #1E2A24;
+      --warn-bg: #FFF6E5;
+      --warn-line: #E2B866;
+      --page-w: 46rem;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+
+    a { color: var(--green); text-underline-offset: 0.2em; }
+    a:hover { color: var(--green-dark); }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+    [hidden] { display: none !important; }
+
+    .skip-link {
+      position: absolute; left: 16px; top: -100px; z-index: 50;
+      background: var(--bg); color: var(--text); padding: 8px 12px;
+    }
+    .skip-link:focus { top: 8px; }
+    .nowrap { white-space: nowrap; }
+
+    /* ---------- 頂部固定列：名稱 + 分頁選單 ---------- */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner {
+      max-width: 64rem; margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px;
+      padding: 8px 16px;
+    }
+    .topbar .name { font-weight: 700; color: var(--green-dark); text-decoration: none; white-space: nowrap; }
+    .site-nav { flex: 1 1 auto; min-width: 0; }
+    .site-nav ul {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+    }
+    .site-nav a {
+      display: block; white-space: nowrap;
+      padding: 6px 12px; border-radius: 999px;
+      color: var(--text); text-decoration: none; font-size: 0.9375rem;
+    }
+    .site-nav a:hover { background: var(--green-soft); color: var(--green-dark); }
+    .site-nav a[aria-current="page"] { background: var(--green); color: #FFFFFF; font-weight: 700; }
+    @media (max-width: 639.98px) {
+      .topbar-inner { padding: 6px 12px 8px; gap: 2px; }
+      .topbar .name { width: 100%; font-size: 0.9375rem; }
+    }
+    @media (min-width: 640px) { .site-nav ul { justify-content: flex-end; } }
+
+    /* ---------- 首頁 Hero：基本資訊 + 報名 ---------- */
+    .hero { background: var(--green); color: #FFFFFF; padding: 40px 16px 44px; }
+    .hero-inner { max-width: var(--page-w); margin: 0 auto; }
+    .hero h1 { margin: 0; font-size: clamp(1.875rem, 7vw, 2.75rem); line-height: 1.25; }
+    .hero .tagline { margin: 8px 0 20px; font-size: 1.0625rem; }
+    .hero a { color: #FFFFFF; }
+    .hero :focus-visible { outline-color: #FFFFFF; }
+
+    .facts { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .facts li {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px; padding: 4px 12px; font-size: 0.9375rem;
+    }
+    .facts b { margin-right: 6px; opacity: 0.85; }
+
+    .register { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+    .register p { margin: 0; }
+    .register-status { font-weight: 700; font-size: 1.125rem; }
+    .register-note { width: 100%; font-size: 0.9375rem; opacity: 0.92; }
+    .register .btn + .register-note { width: auto; }
+    .register-closed {
+      display: inline-block; padding: 10px 24px;
+      border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 999px;
+      font-weight: 700; font-size: 1.0625rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--green);
+      color: #FFFFFF;
+      font-size: 1.0625rem; font-weight: 700;
+      text-align: center; text-decoration: none;
+      border-radius: 999px;
+    }
+    .btn:hover { background: var(--green-dark); color: #FFFFFF; }
+    .hero .btn { background: #FFFFFF; color: var(--green-dark); }
+    .hero .btn:hover { background: var(--green-soft); color: var(--green-dark); }
+
+    /* ---------- 主內容：每個區段一張白色卡片 ---------- */
+    main { max-width: var(--page-w); margin: 0 auto; padding: 32px 16px 0; }
+    main:focus { outline: none; }
+
+    .section {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px 16px 24px;
+    }
+    @media (min-width: 640px) { .section { padding: 28px 32px 32px; } }
+    .section:not([hidden]) ~ .section:not([hidden]) { margin-top: 24px; }
+    .section > h2 {
+      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 16px; padding-bottom: 12px;
+      border-bottom: 2px solid var(--green-soft);
+      font-size: 1.5rem; line-height: 1.4; color: var(--green-dark);
+    }
+    .section > h2::before {
+      content: ""; flex: none;
+      width: 6px; height: 1.1em; border-radius: 3px; background: var(--green);
+    }
+    .section > h2:focus { outline: none; }
+    .lead { margin: -4px 0 16px; color: var(--muted); }
+
+    /* 首頁：入口卡片 */
+    .see-all { margin: 14px 0 0; font-weight: 700; }
+    .entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    @media (min-width: 640px) { .entries { grid-template-columns: repeat(3, 1fr); } }
+    .entries a {
+      display: block; height: 100%;
+      padding: 16px; border: 1px solid var(--line); border-radius: 12px;
+      color: var(--text); text-decoration: none;
+    }
+    .entries a:hover { border-color: var(--green); background: var(--green-soft); }
+    .entries b { display: block; color: var(--green-dark); font-size: 1.0625rem; }
+    .entries b::after { content: " →"; }
+    .entries span { display: block; margin-top: 4px; color: var(--muted); font-size: 0.9375rem; line-height: 1.6; }
+
+    /* 公告 */
+    .notice-state {
+      margin: 0; padding: 16px;
+      background: var(--green-soft); border-radius: 8px; color: var(--muted);
+    }
+    .notice-state.is-error { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--text); }
+    .notice-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .notice { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    .notice.is-pinned { border-color: var(--green); border-left-width: 6px; }
+    .notice-meta {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      margin: 0 0 2px; color: var(--muted); font-size: 0.9375rem;
+    }
+    .badge {
+      display: inline-block; padding: 0 10px;
+      background: var(--green); color: #FFFFFF; border-radius: 999px;
+      font-size: 0.8125rem; font-weight: 700; line-height: 1.8;
+    }
+    .notice h3 { margin: 0; font-size: 1.125rem; line-height: 1.5; }
+    .notice-body { margin: 6px 0 0; white-space: pre-line; } /* F-3：保留換行 */
+    .more { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .more > summary { cursor: pointer; padding: 12px 16px; font-weight: 700; color: var(--green-dark); }
+    .more > .notice-list { padding: 0 12px 12px; }
+
+    /* 錄取名單 */
+    .admit-search { margin: 0 0 16px; }
+    .admit-search label { display: block; font-weight: 700; margin-bottom: 4px; }
+    .admit-fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .admit-field { flex: 0 1 auto; min-width: 0; }
+    .admit-field.is-query { flex: 1 1 14rem; max-width: 24rem; }
+    .admit-search input, .admit-search select {
+      width: 100%; height: 48px;
+      padding: 10px 12px; font: inherit;
+      border: 2px solid var(--muted); border-radius: 8px; background: var(--bg); color: var(--text);
+    }
+    .admit-search select { width: auto; max-width: 100%; min-width: 9rem; padding-right: 8px; } /* 寬度依選項文字，不截斷組別名稱 */
+    .admit-search input:focus-visible, .admit-search select:focus-visible { border-color: var(--green); outline-offset: 2px; }
+    .admit-search .hint { margin: 4px 0 0; color: var(--muted); font-size: 0.9375rem; }
+    .admit-groups { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0 0 16px; }
+    @media (min-width: 640px) { .admit-groups { grid-template-columns: repeat(4, 1fr); } }
+    .admit-groups button {
+      font: inherit; line-height: 1.4; text-align: center; cursor: pointer;
+      padding: 8px 6px; border: 2px solid var(--line); border-radius: 10px;
+      background: var(--bg); color: var(--text);
+    }
+    .admit-groups button:hover { border-color: var(--green); }
+    .admit-groups button span { display: block; }
+    .admit-groups .g-batch { font-weight: 700; }
+    .admit-groups .g-sub { font-size: 0.875rem; color: var(--muted); }
+    .admit-groups button[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #FFFFFF; }
+    .admit-groups button[aria-pressed="true"] .g-sub { color: #FFFFFF; }
+    .admit-count { margin: 0 0 12px; font-weight: 700; color: var(--green-dark); }
+    .admit-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; line-height: 1.5; }
+    .admit-table + .admit-table { margin-top: 20px; }
+    .admit-table caption {
+      text-align: left; font-weight: 700; font-size: 1.125rem; color: var(--green-dark);
+      padding-bottom: 6px;
+    }
+    .admit-table th, .admit-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+    .admit-table th {
+      position: sticky; top: var(--topbar-h, 0px); z-index: 1; /* 長名單捲動時表頭固定 */
+      background: var(--green-soft); font-size: 0.9375rem; white-space: nowrap;
+    }
+    .admit-table td:last-child { font-family: ui-monospace, Consolas, "Courier New", monospace; letter-spacing: 0.02em; white-space: nowrap; }
+    @media (max-width: 379.98px) { .admit-table th, .admit-table td { padding: 8px 4px; font-size: 0.9375rem; } }
+
+    /* 注意事項 */
+    .rules { margin: 0; padding-left: 1.5em; }
+    .rules li + li { margin-top: 8px; }
+    .rule-group + .rule-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--line); }
+    .rule-group h3 { margin: 0 0 8px; font-size: 1.125rem; color: var(--green-dark); }
+
+    /* 報到單 */
+    .download-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 0 0 20px; }
+    .download-bar .hint { margin: 0; color: var(--muted); font-size: 0.9375rem; }
+    .form-image {
+      display: block; width: 100%; max-width: 620px; height: auto;
+      border: 1px solid var(--line); border-radius: 8px;
+    }
+
+    /* ---------- 頁尾（每個分頁都顯示） ---------- */
+    .site-footer {
+      background: var(--green-dark); color: #E3EDE7;
+      font-size: 0.9375rem;
+      padding: 28px 16px 32px; margin-top: 48px;
+    }
+    .site-footer a { color: #FFFFFF; }
+    .site-footer :focus-visible { outline-color: #FFFFFF; }
+    .footer-inner { max-width: var(--page-w); margin: 0 auto; display: grid; gap: 16px 40px; }
+    @media (min-width: 560px) { .footer-inner { grid-template-columns: repeat(2, max-content); } }
+    .footer-title { margin: 0 0 2px; font-size: 0.9375rem; font-weight: 700; color: #FFFFFF; }
+    .site-footer p { margin: 0; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="name" href="#home">【範例】2026 冬令營</a>
+      <nav class="site-nav" aria-label="頁面選單">
+        <ul>
+          <li><a href="#home">首頁</a></li>
+          <li><a href="#notices">公告</a></li>
+          <li><a href="#reg-rules">報名須知</a></li>
+          <li><a href="#admitted">錄取名單</a></li>
+          <li><a href="#camp-rules">營隊須知</a></li>
+          <li><a href="#checkin">報到單</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 首頁分頁：基本資訊 + 報名 -->
+  <section class="hero" data-view="home" aria-labelledby="camp-title">
+    <div class="hero-inner">
+      <h1 id="camp-title">【範例】2026 冬令營</h1>
+      <p class="tagline">【範例】走進山林，一起探索、一起長大</p>
+      <ul class="facts" aria-label="營隊基本資訊">
+        <li><b>日期</b>【範例】2027/1/25（一）～ 1/28（四）</li>
+        <li><b>地點</b>【範例】○○國小</li>
+        <li><b>對象</b>【範例】國小三至六年級學生</li>
+        <li><b>名額</b>【範例】40 名，額滿為止</li>
+        <li><b>費用</b>免費</li>
+      </ul>
+      <div class="register" id="register">
+        <!-- 由程式依 REG_OPEN／REG_CLOSE 填入；以下為 JS 無法執行時的備用內容 -->
+        <p class="register-status">請開啟 JavaScript 以查看報名狀態。</p>
+      </div>
+    </div>
+  </section>
+
+  <main id="main" tabindex="-1">
+
+    <!-- 首頁分頁：公告摘要（程式自動取前 3 則） -->
+    <section class="section" data-view="home" aria-labelledby="digest-title">
+      <h2 id="digest-title">最新公告</h2>
+      <div id="digest-area" aria-live="polite">
+        <p class="notice-state">公告載入中…</p>
+      </div>
+    </section>
+
+    <!-- 首頁分頁：其他分頁入口（說明文字由 Alice 維護） -->
+    <section class="section" data-view="home" aria-labelledby="entry-title">
+      <h2 id="entry-title">參加前請先看</h2>
+      <ul class="entries">
+        <li><a href="#reg-rules"><b>報名注意事項</b><span>填表方式、錄取公告、取消報名</span></a></li>
+        <li><a href="#camp-rules"><b>營隊注意事項</b><span>攜帶物品、活動規範、接送與請假</span></a></li>
+        <li><a href="#checkin"><b>報到單下載</b><span>列印填寫後，報到當天交給工作人員</span></a></li>
+      </ul>
+    </section>
+
+    <section class="section" data-view="notices" aria-labelledby="notices-title">
+      <h2 id="notices-title">最新公告</h2>
+      <div id="notice-area" aria-live="polite">
+        <p class="notice-state">公告載入中…</p>
+      </div>
+    </section>
+
+    <!-- 報名注意事項由 Alice 統一維護（規格書 §5） -->
+    <section class="section" data-view="reg-rules" aria-labelledby="reg-rules-title">
+      <h2 id="reg-rules-title">報名注意事項</h2>
+      <ol class="rules">
+        <li>【範例】請由家長或監護人填寫報名表，每位學員填寫一份。</li>
+        <li>【範例】報名送出後，請留意報名表中填寫的信箱，確認信將於 3 個工作天內寄出。</li>
+        <li>【範例】錄取名單將公布於<a href="#admitted">「錄取名單」分頁</a>（姓名與身分證字號部分遮蔽），不另行個別通知。</li>
+        <li>【範例】學員如有特殊飲食需求或身體狀況，請於報名表中註明。</li>
+        <li>【範例】活動期間請穿著輕便服裝與運動鞋，並自備水壺。</li>
+        <li>【範例】若需取消報名，請於活動開始 7 天前來信告知。</li>
+      </ol>
+    </section>
+
+    <!-- 錄取名單：資料來自另一份試算表（ADMIT_CSV_URL），進入此分頁時才讀取（規格書 §7.3） -->
+    <section class="section" data-view="admitted" aria-labelledby="admitted-title">
+      <h2 id="admitted-title">錄取名單</h2>
+      <p class="lead">為保護個人資料，姓名與身分證字號已部分遮蔽。</p>
+      <div id="admit-area">
+        <p class="notice-state">請開啟 JavaScript 以查看錄取名單。</p>
+      </div>
+    </section>
+
+    <!-- 營隊注意事項由 Alice 統一維護 -->
+    <section class="section" data-view="camp-rules" aria-labelledby="camp-rules-title">
+      <h2 id="camp-rules-title">營隊注意事項</h2>
+      <p class="lead">參加營隊期間的規範與準備事項，請家長與學員一起閱讀。</p>
+      <div class="rule-group">
+        <h3>攜帶物品</h3>
+        <ul class="rules">
+          <li>【範例】換洗衣物、盥洗用品、拖鞋</li>
+          <li>【範例】水壺、帽子、防曬用品、雨具</li>
+          <li>【範例】健保卡影本、個人常備藥品</li>
+        </ul>
+      </div>
+      <div class="rule-group">
+        <h3>活動規範</h3>
+        <ul class="rules">
+          <li>【範例】活動期間請聽從隊輔指示，不可單獨離隊。</li>
+          <li>【範例】營隊期間手機統一保管，每日晚間開放與家人聯絡。</li>
+          <li>【範例】請勿攜帶貴重物品，遺失恕不負責。</li>
+        </ul>
+      </div>
+      <div class="rule-group">
+        <h3>接送與請假</h3>
+        <ul class="rules">
+          <li>【範例】每日 8:30 報到、16:30 放學，請準時接送。</li>
+          <li>【範例】如需請假或提早接回，請事先來信告知。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 報到單：替換 files/checkin-form.jpg 即可（檔名不變就不用改程式） -->
+    <section class="section" data-view="checkin" aria-labelledby="checkin-title">
+      <h2 id="checkin-title">報到單下載</h2>
+      <p class="lead">請下載並列印報到單，填寫後於報到當天交給工作人員。</p>
+      <div class="download-bar">
+        <a class="btn" href="files/checkin-form.jpg" download="【範例】2026冬令營報到單.jpg">下載報到單</a>
+        <p class="hint">手機也可以長按下方圖片儲存。</p>
+      </div>
+      <img class="form-image" src="files/checkin-form.jpg" width="1240" height="1754" loading="lazy"
+           alt="【範例】2026 冬令營報到單。欄位：學員姓名、就讀學校與年級、家長姓名、緊急聯絡電話、特殊飲食需求、身體狀況說明；報到當天請攜帶本報到單（家長簽名）、健保卡影本、個人藥品；最下方為家長簽名與日期。">
+    </section>
+
+  </main>
+
+  <!-- 頁尾：每個分頁都會顯示 -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <h2 class="footer-title">聯絡我們</h2>
+        <p>營隊信箱：<a href="mailto:example@example.com">example@example.com</a></p>
+      </div>
+      <div>
+        <h2 class="footer-title">主辦單位</h2>
+        <p>【範例】主辦單位名稱</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="vendor/papaparse.min.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ============================================================
+     * 設定區：一般維護只需要改這裡
+     * ============================================================ */
+
+    // 公告 CSV 網址。
+    // demo 階段讀取同資料夾的 demo-data.csv；
+    // 換成 Google 試算表時，請貼上「檔案 → 共用 → 發布到網路」中，
+    // 只選「公告」工作表、格式選 CSV 所產生的網址。
+    var CSV_URL = 'demo-data.csv';
+
+    // 報名表單網址（Google 表單）
+    var FORM_URL = 'https://example.com/form';
+
+    // 報名開放與截止時間（台灣時間，務必保留 +08:00）
+    var REG_OPEN  = '2026-11-01T00:00:00+08:00';
+    var REG_CLOSE = '2026-12-15T23:59:59+08:00';
+
+    // 讀取失敗時顯示的聯絡方式
+    var CONTACT_TEXT = 'example@example.com';
+
+    // 首頁公告摘要顯示幾則；公告分頁先顯示幾則（其餘收在「看更早的公告」）
+    var DIGEST_COUNT = 3;
+    var NOTICE_VISIBLE_COUNT = 5;
+
+    // 錄取名單 CSV 網址（另一份試算表「錄取名單」工作表發布的 CSV）。
+    // 留空 '' 時，分頁顯示「錄取名單尚未公布」。
+    var ADMIT_CSV_URL = 'demo-admitted.csv';
+
+    // 錄取名單顯示到何時（台灣時間，務必保留 +08:00）；到了這個時間網頁不再顯示名單。
+    // 規格：公告到營隊開始當天 → 設為營隊第一天 00:00。
+    var ADMIT_SHOW_UNTIL = '2027-01-25T00:00:00+08:00';
+
+    /* ============================================================ */
+
+    var FETCH_TIMEOUT_MS = 15000;
+    var REQUIRED_FIELDS = ['日期', '標題', '內容', '置頂', '顯示'];
+
+    var dateFormatter = new Intl.DateTimeFormat('zh-TW', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    });
+
+    function el(tag, className, text) {
+      var node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    /* ---------------- 分頁切換 ---------------- */
+
+    // 網址 #notices 會顯示所有 data-view="notices" 的元素，其餘隱藏。
+    // 第一個出現的 data-view（home）為預設分頁。JS 無法執行時所有區塊依序顯示。
+    var root = document.documentElement;
+    var views = Array.prototype.slice.call(document.querySelectorAll('[data-view]'));
+    var viewNames = [];
+    views.forEach(function (v) {
+      if (viewNames.indexOf(v.dataset.view) === -1) viewNames.push(v.dataset.view);
+    });
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a'));
+
+    // 網址可帶子路徑，例如 #admitted/2（錄取名單第 2 組）
+    function hashParts() {
+      return decodeURIComponent(location.hash.slice(1)).split('/');
+    }
+
+    function currentView() {
+      var id = hashParts()[0];
+      return viewNames.indexOf(id) !== -1 ? id : viewNames[0];
+    }
+
+    function showView(moveFocus) {
+      var id = currentView();
+      root.dataset.current = id;
+      views.forEach(function (v) { v.hidden = v.dataset.view !== id; });
+      navLinks.forEach(function (a) {
+        if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+      window.scrollTo(0, 0);
+      var active = document.querySelector('.site-nav a[aria-current="page"]');
+      if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (moveFocus) {
+        var heading = document.querySelector('[data-view="' + id + '"]:not([hidden]) h1, [data-view="' + id + '"]:not([hidden]) h2');
+        if (heading) {
+          heading.setAttribute('tabindex', '-1');
+          heading.focus({ preventScroll: true });
+        }
+      }
+    }
+
+    window.addEventListener('hashchange', function () { showView(true); onViewChange(); });
+    showView(false);
+
+    /* ---------------- 報名區塊（F-8、F-9） ---------------- */
+
+    var openTime = new Date(REG_OPEN).getTime();
+    var closeTime = new Date(REG_CLOSE).getTime();
+    var lastRegState = null;
+
+    // 「標籤：日期」，日期本身不在中間斷行
+    function dateLine(className, label, time, suffix) {
+      var p = el('p', className, label);
+      p.appendChild(el('span', 'nowrap', dateFormatter.format(time)));
+      if (suffix) p.appendChild(document.createTextNode(suffix));
+      return p;
+    }
+
+    function renderRegister() {
+      var box = document.getElementById('register');
+      var now = Date.now();
+      var state = now < openTime ? 'before' : (now < closeTime ? 'open' : 'closed');
+      if (state === lastRegState) return;
+      lastRegState = state;
+
+      box.replaceChildren();
+
+      if (state === 'before') {
+        box.appendChild(dateLine('register-status', '報名將於 ', openTime, ' 開放'));
+        box.appendChild(dateLine('register-note', '報名截止：', closeTime));
+      } else if (state === 'open') {
+        var a = el('a', 'btn', '前往報名表');
+        a.href = FORM_URL;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.setAttribute('aria-label', '前往報名表（另開新分頁）');
+        box.appendChild(a);
+        box.appendChild(dateLine('register-note', '報名開放中・截止 ', closeTime));
+      } else {
+        box.appendChild(el('p', 'register-closed', '報名已截止'));
+        box.appendChild(el('p', 'register-note', '感謝大家的支持，請持續留意最新公告。'));
+      }
+    }
+
+    /* ---------------- 公告區（F-1 ～ F-7、F-10 ～ F-12） ---------------- */
+
+    // F-2a：接受 2026/11/8、2026-11-08 等寫法；無效則回傳 null
+    function parseDate(raw) {
+      var m = /^(\d{4})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{1,2})$/.exec(raw);
+      if (!m) return null;
+      var y = +m[1], mo = +m[2], d = +m[3];
+      var check = new Date(Date.UTC(y, mo - 1, d));
+      if (check.getUTCFullYear() !== y || check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d) {
+        return null;
+      }
+      return {
+        key: y * 10000 + mo * 100 + d,
+        text: y + '/' + String(mo).padStart(2, '0') + '/' + String(d).padStart(2, '0')
+      };
+    }
+
+    function clean(value) {
+      return value == null ? '' : String(value).trim();
+    }
+
+    function toNotices(rows) {
+      var list = [];
+      rows.forEach(function (row, index) {
+        var date = clean(row['日期']);
+        var title = clean(row['標題']);
+        var hidden = clean(row['顯示']).toUpperCase() === 'N';
+        if (!date || !title || hidden) return; // F-1
+        var parsed = parseDate(date);
+        list.push({
+          row: index,
+          dateText: parsed ? parsed.text : date,
+          dateKey: parsed ? parsed.key : null,
+          title: title,
+          body: clean(row['內容']),
+          pinned: clean(row['置頂']).toUpperCase() === 'Y'
+        });
+      });
+
+      // F-2：置頂在前；組內日期新到舊；同日則試算表較下方者在前；無效日期排在組內最後
+      list.sort(function (a, b) {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        var aValid = a.dateKey !== null, bValid = b.dateKey !== null;
+        if (aValid !== bValid) return aValid ? -1 : 1;
+        if (aValid && a.dateKey !== b.dateKey) return b.dateKey - a.dateKey;
+        return b.row - a.row;
+      });
+      return list;
+    }
+
+    // F-10：只把 http(s) 網址做成連結，其餘一律為純文字（F-7）
+    var URL_PATTERN = /https?:\/\/[^\s<>"'，。、；！？（）「」【】]+/g;
+    var TRAILING_PUNCT = /[.,;:!?)\]]+$/;
+
+    function appendLinkified(parent, text) {
+      var last = 0;
+      var match;
+      URL_PATTERN.lastIndex = 0;
+      while ((match = URL_PATTERN.exec(text)) !== null) {
+        var url = match[0];
+        var trail = TRAILING_PUNCT.exec(url);
+        if (trail) url = url.slice(0, -trail[0].length);
+        var start = match.index;
+        if (start > last) parent.appendChild(document.createTextNode(text.slice(last, start)));
+        var a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = url;
+        parent.appendChild(a);
+        last = start + url.length;
+        URL_PATTERN.lastIndex = last;
+      }
+      if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+    }
+
+    function stateMessage(message, isError) {
+      return el('p', 'notice-state' + (isError ? ' is-error' : ''), message);
+    }
+
+    function showStateEverywhere(message, isError) {
+      document.getElementById('digest-area').replaceChildren(stateMessage(message, isError));
+      document.getElementById('notice-area').replaceChildren(stateMessage(message, isError));
+    }
+
+    // withBody = false 時只顯示日期與標題（首頁摘要用）
+    function noticeItem(n, withBody) {
+      var li = el('li');
+      var article = el('article', 'notice' + (n.pinned ? ' is-pinned' : ''));
+      var meta = el('p', 'notice-meta');
+      if (n.pinned) meta.appendChild(el('span', 'badge', '置頂'));
+      meta.appendChild(el('span', null, n.dateText));
+      article.appendChild(meta);
+      article.appendChild(el('h3', null, n.title));
+      if (withBody && n.body) {
+        var body = el('p', 'notice-body');
+        appendLinkified(body, n.body);
+        article.appendChild(body);
+      }
+      li.appendChild(article);
+      return li;
+    }
+
+    function noticeList(items, withBody) {
+      var ul = el('ul', 'notice-list');
+      items.forEach(function (n) { ul.appendChild(noticeItem(n, withBody)); });
+      return ul;
+    }
+
+    function renderNotices(notices) {
+      if (notices.length === 0) {
+        showStateEverywhere('目前沒有公告', false); // F-6
+        return;
+      }
+
+      // F-11：首頁摘要
+      var digest = document.getElementById('digest-area');
+      digest.replaceChildren(noticeList(notices.slice(0, DIGEST_COUNT), false));
+      var seeAll = el('p', 'see-all');
+      var link = el('a', null, '看全部公告（' + notices.length + ' 則）→');
+      link.href = '#notices';
+      seeAll.appendChild(link);
+      digest.appendChild(seeAll);
+
+      // F-12：公告分頁，超過的部分收合
+      var area = document.getElementById('notice-area');
+      area.replaceChildren(noticeList(notices.slice(0, NOTICE_VISIBLE_COUNT), true));
+      var rest = notices.slice(NOTICE_VISIBLE_COUNT);
+      if (rest.length) {
+        var details = el('details', 'more');
+        details.appendChild(el('summary', null, '看更早的公告（' + rest.length + ' 則）'));
+        details.appendChild(noticeList(rest, true));
+        area.appendChild(details);
+      }
+    }
+
+    function showLoadError(reason) {
+      if (window.console) console.error('[公告] 載入失敗：', reason);
+      showStateEverywhere('公告暫時無法載入，請稍後再試或聯絡 ' + CONTACT_TEXT, true); // F-5
+    }
+
+    function withCacheBuster(url) {
+      return url + (url.indexOf('?') === -1 ? '?' : '&') + '_=' + Date.now();
+    }
+
+    // 讀取 CSV 並檢查欄位名稱，回傳資料列（Promise）
+    // keepEmptyLines = true 時保留空白列，資料列的索引才能對回試算表的列號
+    function fetchCsv(url, requiredFields, keepEmptyLines) {
+      if (typeof Papa === 'undefined') return Promise.reject(new Error('PapaParse 未載入'));
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = controller ? setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS) : null;
+
+      return fetch(withCacheBuster(url), { cache: 'no-store', signal: controller ? controller.signal : undefined })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
+        .then(function (csv) {
+          var result = Papa.parse(csv, {
+            header: true,
+            skipEmptyLines: keepEmptyLines ? false : 'greedy',
+            transformHeader: function (h) { return h.replace(/^﻿/, '').trim(); }
+          });
+          var fields = result.meta.fields || [];
+          var missing = requiredFields.filter(function (f) { return fields.indexOf(f) === -1; });
+          if (missing.length) throw new Error('缺少欄位：' + missing.join('、'));
+          return result.data;
+        })
+        .finally(function () { if (timer) clearTimeout(timer); });
+    }
+
+    function loadNotices() {
+      fetchCsv(CSV_URL, REQUIRED_FIELDS)
+        .then(function (rows) { renderNotices(toNotices(rows)); })
+        .catch(showLoadError);
+    }
+
+    /* ---------------- 錄取名單（F-13 ～ F-18） ---------------- */
+
+    var ADMIT_FIELDS = ['梯次', '性別', '錄取編號', '姓名', '身分證字號'];
+    var GENDER_ORDER = { '男': 0, '女': 1 };
+    var SEARCH_LIMIT = 100;   // 搜尋結果最多顯示幾筆
+    var applyAdmitHash = null; // 名單顯示後，由 renderAdmitted 設定：依網址切換組別
+    var admitUntil = new Date(ADMIT_SHOW_UNTIL).getTime();
+    var admitArea = document.getElementById('admit-area');
+    var admitState = 'idle'; // idle → loading → ready / error / ended
+
+    // 全形轉半形、轉大寫
+    function toHalfWidth(s) {
+      return (s.normalize ? s.normalize('NFKC') : s).toUpperCase();
+    }
+
+    // 搜尋用：再去掉空白與遮蔽符號，讓「王明」可以找到「王○明」、「789」找到「A******789」
+    function searchKey(s) {
+      return toHalfWidth(s).replace(/[\s○◯*]/g, '');
+    }
+
+    // F-16：只接受「英文字母 + 6 個 * + 末 3 碼」，其餘（含完整身分證字號）一律視為格式錯誤
+    var MASKED_ID = /^[A-Z]\*{6}\d{3}$/;
+    function isMaskedName(name) {
+      return name.indexOf('○') !== -1 && name.replace(/○/g, '').length <= 2;
+    }
+
+    // 「第一梯」→ 1、「第 2 梯」→ 2、「第十二梯」→ 12；讀不出來回傳 null
+    var CN_DIGITS = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
+    function batchNumber(name) {
+      var m = /第\s*([0-9一二三四五六七八九十]+)\s*梯/.exec(toHalfWidth(name));
+      if (!m) return null;
+      var s = m[1];
+      if (/^\d+$/.test(s)) return +s;
+      var i = s.indexOf('十');
+      if (i === -1) return s.length === 1 ? CN_DIGITS[s] : null;
+      var tens = i === 0 ? 1 : CN_DIGITS[s.charAt(0)];
+      var ones = i === s.length - 1 ? 0 : CN_DIGITS[s.charAt(s.length - 1)];
+      return tens && ones !== undefined ? tens * 10 + ones : null;
+    }
+
+    // 回傳 { list, groups } 或 { error: 第幾列 + 原因 }（列號以試算表為準，第 1 列為欄位名稱）
+    function toAdmitted(rows) {
+      var list = [];
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var r = {
+          batch: clean(row['梯次']),
+          gender: toHalfWidth(clean(row['性別'])).replace(/生$/, ''), // 接受「男」或「男生」
+          no: toHalfWidth(clean(row['錄取編號'])),
+          name: clean(row['姓名']),
+          id: toHalfWidth(clean(row['身分證字號'])).replace(/\s/g, ''),
+          row: i
+        };
+        if (!r.batch && !r.gender && !r.no && !r.name && !r.id) continue;
+        var rowNo = '第 ' + (i + 2) + ' 列';
+        if (!r.batch || !r.gender || !r.no || !r.name || !r.id) return { error: rowNo + '有欄位空白' };
+        if (!(r.gender in GENDER_ORDER)) return { error: rowNo + '性別應填「男」或「女」' };
+        if (!MASKED_ID.test(r.id)) return { error: rowNo + '身分證字號未遮蔽或格式不符（應為 A******123）' };
+        if (!isMaskedName(r.name)) return { error: rowNo + '姓名未遮蔽或格式不符（應為 王○明）' };
+        r.key = [r.no, r.name, r.id].map(searchKey).join('|');
+        list.push(r);
+      }
+
+      // 梯次依名稱中的數字（第一梯、第2梯…）；讀不出數字的依試算表中第一次出現的順序排在後面
+      // → 男生在前 → 錄取編號自然排序（A2 排在 A10 前面）
+      var batchOrder = [];
+      list.forEach(function (r) { if (batchOrder.indexOf(r.batch) === -1) batchOrder.push(r.batch); });
+      var batchRank = {};
+      batchOrder.forEach(function (b, i) {
+        var n = batchNumber(b);
+        batchRank[b] = n !== null ? n : 1000 + i;
+      });
+      list.sort(function (a, b) {
+        return (batchRank[a.batch] - batchRank[b.batch]) ||
+          (GENDER_ORDER[a.gender] - GENDER_ORDER[b.gender]) ||
+          a.no.localeCompare(b.no, 'zh-Hant', { numeric: true }) || a.row - b.row;
+      });
+
+      // 分組：每個「梯次＋性別」一組
+      var groups = [];
+      list.forEach(function (r) {
+        var g = groups[groups.length - 1];
+        if (!g || g.batch !== r.batch || g.gender !== r.gender) {
+          g = { batch: r.batch, gender: r.gender, label: r.batch + r.gender + '生', rows: [] };
+          groups.push(g);
+        }
+        r.group = groups.length - 1;
+        g.rows.push(r);
+      });
+      return { list: list, groups: groups };
+    }
+
+    function admitTable(rows, captionText) {
+      var table = el('table', 'admit-table');
+      if (captionText) table.appendChild(el('caption', null, captionText));
+      var thead = el('thead');
+      var tr = el('tr');
+      ['錄取編號', '姓名', '身分證字號'].forEach(function (h) {
+        var th = el('th', null, h);
+        th.scope = 'col';
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      var tbody = el('tbody');
+      rows.forEach(function (r) {
+        var row = el('tr');
+        row.appendChild(el('td', null, r.no));
+        row.appendChild(el('td', null, r.name));
+        row.appendChild(el('td', null, r.id));
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function renderAdmitted(list, groups) {
+      if (list.length === 0) {
+        admitArea.replaceChildren(stateMessage('錄取名單尚未公布', false));
+        return;
+      }
+
+      var search = el('div', 'admit-search');
+      var label = el('label', null, '搜尋錄取名單');
+      label.htmlFor = 'admit-q';
+      var input = el('input');
+      input.type = 'search';
+      input.id = 'admit-q';
+      input.autocomplete = 'off';
+      input.setAttribute('aria-describedby', 'admit-hint');
+      input.setAttribute('aria-controls', 'admit-results');
+      var hint = el('p', 'hint', '可輸入姓名中看得到的字、身分證字號末 3 碼或錄取編號');
+      hint.id = 'admit-hint';
+
+      // F-19、F-21：組別下拉選單（第一梯男生、第一梯女生…），同時決定顯示的名單與搜尋範圍
+      var current = 0;
+      var groupLabel = el('label', null, '組別');
+      groupLabel.htmlFor = 'admit-group';
+      var select = el('select');
+      select.id = 'admit-group';
+      select.setAttribute('aria-controls', 'admit-results');
+      groups.forEach(function (g, i) { select.appendChild(el('option', null, g.label)).value = String(i); });
+
+      var groupField = el('div', 'admit-field');
+      groupField.appendChild(groupLabel);
+      groupField.appendChild(select);
+      var queryField = el('div', 'admit-field is-query');
+      queryField.appendChild(label);
+      queryField.appendChild(input);
+      var fields = el('div', 'admit-fields');
+      fields.appendChild(groupField);
+      fields.appendChild(queryField);
+      search.appendChild(fields);
+      search.appendChild(hint);
+
+      // 分組按鈕：與下拉選單同步，兩者都能切換組別
+      var groupNav = el('div', 'admit-groups');
+      groupNav.setAttribute('role', 'group');
+      groupNav.setAttribute('aria-label', '選擇組別');
+      var buttons = groups.map(function (g, i) {
+        var b = el('button');
+        b.type = 'button';
+        b.setAttribute('aria-controls', 'admit-results');
+        b.appendChild(el('span', 'g-batch', g.batch));
+        b.appendChild(el('span', 'g-sub', g.gender + '生'));
+        b.addEventListener('click', function () { selectGroup(i); });
+        groupNav.appendChild(b);
+        return b;
+      });
+
+      var count = el('p', 'admit-count');
+      count.setAttribute('role', 'status');
+      var results = el('div');
+      results.id = 'admit-results';
+
+      function selectGroup(i) {
+        current = i;
+        // 用 replaceState 更新網址：可分享，但不觸發分頁切換（不會跳回頁首）
+        if (history.replaceState) history.replaceState(null, '', '#admitted/' + (i + 1));
+        update();
+      }
+
+      select.addEventListener('change', function () { selectGroup(+select.value); });
+
+      function update() {
+        var g = groups[current];
+        select.value = String(current);
+        buttons.forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === current)); });
+        var q = searchKey(input.value);
+
+        if (!q) {
+          count.textContent = g.label;
+          results.replaceChildren(admitTable(g.rows));
+          return;
+        }
+
+        // F-17、F-20：只搜尋選定組別；超過 SEARCH_LIMIT 筆只顯示前面幾筆
+        var matched = g.rows.filter(function (r) { return r.key.indexOf(q) !== -1; });
+        count.textContent = g.label + '　符合 ' + matched.length + ' 筆' +
+          (matched.length > SEARCH_LIMIT ? '，僅顯示前 ' + SEARCH_LIMIT + ' 筆，請輸入更多字縮小範圍' : '');
+        results.replaceChildren(matched.length
+          ? admitTable(matched.slice(0, SEARCH_LIMIT))
+          : stateMessage('此組別查無符合的資料，請確認組別與輸入內容；如有疑問請聯絡 ' + CONTACT_TEXT, false));
+      }
+      input.addEventListener('input', update);
+
+      // 網址 #admitted/2 → 第 2 組；沒有或無效時維持目前組別（預設第 1 組：第一梯男生）
+      applyAdmitHash = function () {
+        var n = parseInt(hashParts()[1], 10);
+        if (n >= 1 && n <= groups.length) current = n - 1;
+        update();
+      };
+      applyAdmitHash();
+
+      admitArea.replaceChildren(search, groupNav, count, results);
+    }
+
+    function showAdmitError(reason, message) {
+      if (window.console) console.error('[錄取名單] ' + reason);
+      admitArea.replaceChildren(stateMessage(message, true));
+    }
+
+    // F-15：到了 ADMIT_SHOW_UNTIL 就移除名單（頁面開著時每分鐘檢查）
+    function checkAdmitEnded() {
+      if (admitState === 'ended' || Date.now() < admitUntil) return false;
+      admitState = 'ended';
+      admitArea.replaceChildren(stateMessage('錄取名單公告期間已結束', false));
+      return true;
+    }
+
+    // F-14：進入錄取名單分頁時才讀取
+    function loadAdmitted() {
+      if (admitState !== 'idle' || checkAdmitEnded()) return;
+      if (!ADMIT_CSV_URL) {
+        admitState = 'ready';
+        renderAdmitted([]);
+        return;
+      }
+      admitState = 'loading';
+      admitArea.replaceChildren(stateMessage('錄取名單載入中…', false));
+      fetchCsv(ADMIT_CSV_URL, ADMIT_FIELDS, true)
+        .then(function (rows) {
+          if (checkAdmitEnded()) return;
+          var result = toAdmitted(rows);
+          if (result.error) {
+            admitState = 'error';
+            showAdmitError('資料格式錯誤：' + result.error + '。若是未遮蔽的資料，請立即取消試算表發布再修正。',
+              '錄取名單資料整理中，暫停顯示，請稍後再試或聯絡 ' + CONTACT_TEXT);
+            return;
+          }
+          admitState = 'ready';
+          renderAdmitted(result.list, result.groups);
+        })
+        .catch(function (err) {
+          admitState = 'idle'; // 允許下次進入分頁時重試
+          showAdmitError('載入失敗：' + err, '錄取名單暫時無法載入，請稍後再試或聯絡 ' + CONTACT_TEXT);
+        });
+    }
+
+    function onViewChange() {
+      if (currentView() !== 'admitted') return;
+      if (admitState === 'ready' && applyAdmitHash) applyAdmitHash();
+      else loadAdmitted();
+    }
+
+    // 名單表頭固定在頂部列下方：頂部列高度依螢幕寬度不同，用 CSS 變數同步
+    var topbar = document.querySelector('.topbar');
+    function syncTopbarHeight() { root.style.setProperty('--topbar-h', topbar.offsetHeight + 'px'); }
+    syncTopbarHeight();
+    window.addEventListener('resize', syncTopbarHeight);
+
+    renderRegister();
+    setInterval(function () {
+      renderRegister();   // 頁面開著跨過開放／截止時間時自動切換
+      if (admitState !== 'idle') checkAdmitEnded();
+    }, 60 * 1000);
+    loadNotices();
+    onViewChange();
+  })();
+  </script>
+</body>
+</html>
