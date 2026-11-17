@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 後台不給搜尋引擎收錄（正式上線後也保留這一行） -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>營隊網站後台</title>
+  <style>
+    :root {
+      --green: #2F6B4F;
+      --green-dark: #234F3B;
+      --green-soft: #EEF4F0;
+      --text: #1E2A24;
+      --muted: #4A5A51;
+      --line: #D5E0D9;
+      --bg: #FFFFFF;
+      --page-bg: #F2F6F3;
+      --focus: #1E2A24;
+      --danger: #A3312A;
+      --danger-soft: #FBEDEC;
+      --warn-bg: #FFF6E5;
+      --warn-line: #E2B866;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; background: var(--page-bg); color: var(--text);
+      font-family: system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 1rem; line-height: 1.7; overflow-wrap: anywhere;
+    }
+    a { color: var(--green); text-underline-offset: 0.2em; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+    [hidden] { display: none !important; }
+    .visually-hidden {
+      position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    .topbar { background: var(--green-dark); color: #FFFFFF; }
+    .topbar-inner {
+      max-width: 52rem; margin: 0 auto; padding: 10px 16px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+    }
+    .topbar h1 { margin: 0; font-size: 1.125rem; flex: 1 1 auto; }
+    .topbar a, .topbar .who { color: #FFFFFF; font-size: 0.9375rem; }
+    .topbar :focus-visible { outline-color: #FFFFFF; }
+
+    main { max-width: 52rem; margin: 0 auto; padding: 20px 16px 48px; }
+    .card {
+      background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .card > h2 { margin: 0 0 12px; font-size: 1.25rem; color: var(--green-dark); }
+    .hint { color: var(--muted); font-size: 0.9375rem; margin: 0 0 12px; }
+    .warn {
+      background: var(--warn-bg); border-left: 4px solid var(--warn-line);
+      padding: 10px 14px; border-radius: 8px; font-size: 0.9375rem; margin: 0 0 16px;
+    }
+    .warn p { margin: 0; }
+    .warn p + p { margin-top: 4px; }
+    ol.steps { margin: 0 0 16px; padding-left: 1.4em; font-size: 0.9375rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 40px; padding: 6px 18px; cursor: pointer;
+      font: inherit; font-weight: 700; text-decoration: none;
+      color: #FFFFFF; background: var(--green); border: 2px solid var(--green); border-radius: 999px;
+    }
+    .btn:hover { background: var(--green-dark); border-color: var(--green-dark); }
+    .btn-ghost { color: var(--green-dark); background: var(--bg); }
+    .btn-ghost:hover { background: var(--green-soft); color: var(--green-dark); }
+    .btn-danger { background: var(--danger); border-color: var(--danger); }
+    .btn-danger:hover { background: #7E2520; border-color: #7E2520; }
+    .btn-small { min-height: 34px; padding: 2px 12px; font-size: 0.875rem; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .topbar .btn-ghost { color: var(--green-dark); }
+
+    label.field { display: block; margin-bottom: 14px; }
+    .field > span { display: block; font-weight: 700; margin-bottom: 4px; }
+    .field small { display: block; color: var(--muted); font-size: 0.875rem; }
+    input[type="text"], input[type="password"], input[type="date"], textarea {
+      width: 100%; font: inherit; color: var(--text); background: var(--bg);
+      padding: 8px 12px; border: 2px solid var(--line); border-radius: 10px;
+    }
+    textarea { min-height: 9rem; resize: vertical; }
+    input:focus-visible, textarea:focus-visible { border-color: var(--green); outline-offset: 1px; }
+    .check { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; cursor: pointer; }
+    .check input { width: 20px; height: 20px; margin: 3px 0 0; flex: none; accent-color: var(--green); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    .status {
+      margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; font-weight: 700;
+      background: var(--green-soft); color: var(--green-dark);
+    }
+    .status.is-error { background: var(--danger-soft); color: var(--danger); }
+    .status:empty { display: none; }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .tabs button {
+      font: inherit; font-weight: 700; cursor: pointer; padding: 8px 18px;
+      border: 2px solid var(--green); border-radius: 999px; background: var(--bg); color: var(--green-dark);
+    }
+    .tabs button[aria-selected="true"] { background: var(--green); color: #FFFFFF; }
+
+    .list { list-style: none; margin: 0; padding: 0; }
+    .list > li { border-top: 1px solid var(--line); padding: 12px 0; }
+    .list > li:first-child { border-top: 0; }
+    .item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+    .item-title { font-weight: 700; margin: 0; }
+    .item-date { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+    .item-body {
+      margin: 2px 0 0; color: var(--muted); font-size: 0.9375rem;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .badge {
+      display: inline-block; padding: 0 8px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700; line-height: 1.6;
+      background: var(--green); color: #FFFFFF;
+    }
+    .badge-muted { background: var(--muted); }
+    .item-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .is-off .item-title, .is-off .item-body { opacity: 0.6; }
+
+    .slide { display: grid; grid-template-columns: 8rem 1fr; gap: 12px; align-items: start; }
+    @media (max-width: 479.98px) { .slide { grid-template-columns: 1fr; } }
+    .slide img {
+      display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+      border-radius: 8px; background: var(--green-soft);
+    }
+    .slide-no { font-size: 0.875rem; color: var(--muted); }
+
+    dialog {
+      width: min(40rem, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+      padding: 20px; border: 0; border-radius: 14px; color: var(--text);
+    }
+    dialog::backdrop { background: rgba(20, 30, 25, 0.55); }
+    dialog h2 { margin: 0 0 14px; font-size: 1.25rem; color: var(--green-dark); }
+    .preview-img { display: block; max-width: 100%; max-height: 14rem; border-radius: 8px; margin: 0 0 12px; }
+    .empty { color: var(--muted); margin: 0; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>營隊網站後台</h1>
+      <a href="./" target="_blank" rel="noopener">查看網站 ↗</a>
+      <a id="history-link" href="#" target="_blank" rel="noopener" hidden>修改紀錄 ↗</a>
+      <span class="who" id="who" hidden></span>
+      <button type="button" class="btn btn-ghost btn-small" id="logout" hidden>登出</button>
+    </div>
+  </header>
+
+  <main>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <!-- 登入 -->
+    <section class="card" id="login-view" aria-labelledby="login-title">
+      <h2 id="login-title">登入</h2>
+      <p class="hint">用你的 GitHub 帳號建立的「存取權杖（token）」登入。只有被加入 repo、且有寫入權限的人能修改內容。</p>
+      <ol class="steps">
+        <li>到 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 建立 fine-grained token ↗</a></li>
+        <li>Resource owner 選 repo 的擁有者；Repository access 選 <b>Only select repositories</b> → 只勾選 <b id="repo-name-hint">本網站的 repo</b></li>
+        <li>Permissions → Repository permissions → <b>Contents</b> 選 <b>Read and write</b>（其他都不用開）</li>
+        <li>建立後複製 token（<code>github_pat_</code> 開頭），貼到下方</li>
+      </ol>
+      <form id="login-form" novalidate>
+        <label class="field">
+          <span>Token</span>
+          <input type="password" id="token-input" autocomplete="off" spellcheck="false" required>
+          <small>token 等同密碼，不要傳給別人，也不要貼在聊天群組。</small>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="remember">
+          <span>在這台裝置記住我（<b>共用電腦請勿勾選</b>；不勾選時，關閉分頁就會登出）</span>
+        </label>
+        <div class="actions"><button type="submit" class="btn">登入</button></div>
+      </form>
+    </section>
+
+    <!-- 登入後 -->
+    <div id="app-view" hidden>
+      <div class="warn">
+        <p>按下儲存後會<b>立即</b>修改公開網站（約 1～2 分鐘後生效），並在 GitHub 留下修改紀錄。</p>
+        <p>網站與 repo 皆為公開：<b>不要放任何個人資料</b>（電話、身分證字號、住址等）。</p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="管理項目">
+        <button type="button" role="tab" id="tab-notices" aria-controls="panel-notices" aria-selected="true">公告</button>
+        <button type="button" role="tab" id="tab-carousel" aria-controls="panel-carousel" aria-selected="false" tabindex="-1">輪播照片</button>
+      </div>
+
+      <section class="card" id="panel-notices" role="tabpanel" aria-labelledby="tab-notices">
+        <h2>公告</h2>
+        <p class="hint">排列順序與網站相同：置頂在前，其餘依日期新到舊。</p>
+        <div class="actions" style="margin: 0 0 12px;">
+          <button type="button" class="btn" id="add-notice">＋ 新增公告</button>
+        </div>
+        <ul class="list" id="notice-list"></ul>
+      </section>
+
+      <section class="card" id="panel-carousel" role="tabpanel" aria-labelledby="tab-carousel" hidden>
+        <h2>輪播照片</h2>
+        <p class="hint">首頁最上方的照片，依下方順序輪播。照片會自動縮小到寬 1600 像素並移除拍攝地點等隱藏資訊。</p>
+        <div class="actions" style="margin: 0 0 12px;">
+          <button type="button" class="btn" id="add-slide">＋ 上傳照片</button>
+        </div>
+        <ul class="list" id="slide-list"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- 公告編輯 -->
+  <dialog id="notice-dialog" aria-labelledby="notice-dialog-title">
+    <form id="notice-form" method="dialog" novalidate>
+      <h2 id="notice-dialog-title">新增公告</h2>
+      <label class="field">
+        <span>日期（必填）</span>
+        <input type="date" id="n-date" required>
+      </label>
+      <label class="field">
+        <span>標題（必填）</span>
+        <input type="text" id="n-title" maxlength="100" required>
+      </label>
+      <label class="field">
+        <span>內容</span>
+        <textarea id="n-body" maxlength="5000"></textarea>
+        <small>可以換行；網址請貼完整的 https:// 開頭，網站上會自動變成連結。</small>
+      </label>
+      <label class="check"><input type="checkbox" id="n-pinned"><span>置頂（排在最上方）</span></label>
+      <label class="check"><input type="checkbox" id="n-visible" checked><span>在網站上顯示（取消勾選＝下架但保留）</span></label>
+      <p class="status is-error" id="notice-error" role="alert"></p>
+      <div class="actions">
+        <button type="submit" class="btn" value="save">儲存並發布</button>
+        <button type="button" class="btn btn-ghost" data-close>取消</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 照片上傳／編輯 -->
+  <dialog id="slide-dialog" aria-labelledby="slide-dialog-title">
+    <form id="slide-form" method="dialog" novalidate>
+      <h2 id="slide-dialog-title">上傳照片</h2>
+      <label class="field" id="s-file-field">
+        <span>照片（必填）</span>
+        <input type="file" id="s-file" accept="image/jpeg,image/png,image/webp">
+        <small>建議橫式照片；會自動裁切成寬螢幕比例顯示。</small>
+      </label>
+      <img class="preview-img" id="s-preview" alt="" hidden>
+      <label class="field">
+        <span>照片內容描述（必填）</span>
+        <input type="text" id="s-alt" maxlength="120" required>
+        <small>給看不到圖片的人（例如使用螢幕報讀軟體）的說明，例如「學員在溪邊觀察水中生物」。</small>
+      </label>
+      <label class="field">
+        <span>照片下方文字</span>
+        <input type="text" id="s-caption" maxlength="60">
+        <small>顯示在照片上的短句，可留空。</small>
+      </label>
+      <label class="check" id="s-consent-field">
+        <input type="checkbox" id="s-consent">
+        <span>照片中若有可辨識的學員，<b>已取得家長同意</b>公開於網站</span>
+      </label>
+      <p class="status is-error" id="slide-error" role="alert"></p>
+      <div class="actions">
+        <button type="submit" class="btn" value="save">儲存並發布</button>
+        <button type="button" class="btn btn-ghost" data-close>取消</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 刪除確認 -->
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <h2 id="confirm-title">確定要刪除？</h2>
+      <p id="confirm-text"></p>
+      <div class="actions">
+        <button type="submit" class="btn btn-danger" value="ok">刪除</button>
+        <button type="submit" class="btn btn-ghost" value="cancel">取消</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+  (() => {
+    'use strict';
+
+    /* ============================================================
+     * 設定區：repo 搬移（Transfer）或改名後要改這裡
+     * 放在 *.github.io 上時會自動從網址判斷，不必修改
+     * ============================================================ */
+    const CONFIG = {
+      owner: 'Peilice',
+      repo: 'YHTCamp',
+      branch: 'main'
+    };
+    const NOTICES_PATH = 'data/notices.json';
+    const CAROUSEL_PATH = 'data/carousel.json';
+    const PHOTO_DIR = 'files/carousel/';
+    const PHOTO_MAX_WIDTH = 1600;
+    const PHOTO_QUALITY = 0.82;
+    /* ============================================================ */
+
+    if (/\.github\.io$/i.test(location.hostname)) {
+      CONFIG.owner = location.hostname.split('.')[0];
+      const first = location.pathname.split('/')[1];
+      CONFIG.repo = first && !/\.html$/i.test(first) ? first : location.hostname;
+    }
+
+    const TOKEN_KEY = 'camp-admin-token';
+    const $ = (id) => document.getElementById(id);
+    let token = '';
+    let notices = [];
+    let slides = [];
+    let busy = false;
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function setStatus(message, isError) {
+      const s = $('status');
+      s.textContent = message || '';
+      s.classList.toggle('is-error', !!isError);
+    }
+
+    function setBusy(on) {
+      busy = on;
+      document.querySelectorAll('#app-view button, dialog button[value="save"], #confirm-dialog button').forEach((b) => {
+        b.disabled = on;
+      });
+    }
+
+    /* ---------------- token 保存 ---------------- */
+
+    function storage(kind) {
+      try { return kind === 'local' ? window.localStorage : window.sessionStorage; } catch (e) { return null; }
+    }
+    function loadToken() {
+      const s = storage('session'), l = storage('local');
+      return (s && s.getItem(TOKEN_KEY)) || (l && l.getItem(TOKEN_KEY)) || '';
+    }
+    function saveToken(value, remember) {
+      clearToken();
+      const target = storage(remember ? 'local' : 'session');
+      if (target) target.setItem(TOKEN_KEY, value);
+    }
+    function clearToken() {
+      ['session', 'local'].forEach((k) => { const s = storage(k); if (s) s.removeItem(TOKEN_KEY); });
+    }
+
+    /* ---------------- GitHub API ---------------- */
+
+    async function api(method, path, body) {
+      const headers = {
+        Accept: 'application/vnd.github+json',
+        Authorization: 'Bearer ' + token,
+        'X-GitHub-Api-Version': '2022-11-28'
+      };
+      if (body) headers['Content-Type'] = 'application/json';
+      const res = await fetch('https://api.github.com' + path, {
+        method, headers, cache: 'no-store', body: body ? JSON.stringify(body) : undefined
+      });
+      if (res.status === 204) return null;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error(data.message || ('HTTP ' + res.status));
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    const repoPath = () => '/repos/' + encodeURIComponent(CONFIG.owner) + '/' + encodeURIComponent(CONFIG.repo);
+    const contentsPath = (path) => repoPath() + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
+
+    function bytesToBase64(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      }
+      return btoa(bin);
+    }
+    const textToBase64 = (text) => bytesToBase64(new TextEncoder().encode(text));
+    function base64ToText(b64) {
+      const bin = atob(b64.replace(/\s/g, ''));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+
+    async function readJson(path) {
+      const file = await api('GET', contentsPath(path) + '?ref=' + encodeURIComponent(CONFIG.branch));
+      return { sha: file.sha, data: JSON.parse(base64ToText(file.content)) };
+    }
+
+    // 每次儲存前重新讀取最新版本，依 id 套用修改後寫回（F-25）。
+    // 兩人同時儲存時 GitHub 回 409，自動重讀再套用一次。
+    async function updateJson(path, key, mutate, message) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const file = await readJson(path);
+        if (!Array.isArray(file.data[key])) throw new Error(path + ' 格式錯誤：缺少 ' + key + ' 陣列');
+        mutate(file.data[key]);
+        try {
+          await api('PUT', contentsPath(path), {
+            message: message,
+            content: textToBase64(JSON.stringify(file.data, null, 2) + '\n'),
+            sha: file.sha,
+            branch: CONFIG.branch
+          });
+          return file.data[key];
+        } catch (e) {
+          if (e.status === 409 && attempt === 0) continue;
+          throw e;
+        }
+      }
+    }
+
+    function newId() {
+      const t = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return t.getFullYear() + pad(t.getMonth() + 1) + pad(t.getDate()) + '-' +
+        pad(t.getHours()) + pad(t.getMinutes()) + pad(t.getSeconds()) + '-' +
+        Math.random().toString(36).slice(2, 6);
+    }
+
+    function findIndex(list, id, what) {
+      const i = list.findIndex((x) => x && x.id === id);
+      if (i === -1) throw new Error('這' + what + '已被其他人刪除，畫面已重新整理');
+      return i;
+    }
+
+    function explain(e) {
+      if (e.status === 401) return 'token 錯誤或已過期，請重新登入';
+      if (e.status === 403) return '沒有權限，或 GitHub 暫時限制了請求次數（' + e.message + '）';
+      if (e.status === 404) return '找不到 repo 或檔案：請確認 token 有選到這個 repo（' + CONFIG.owner + '/' + CONFIG.repo + '）';
+      if (e.status === 409) return '其他人剛好同時在修改，請再按一次儲存';
+      if (e.name === 'TypeError') return '網路連線失敗，請確認網路後再試一次';
+      return e.message || String(e);
+    }
+
+    async function run(task, doneMessage) {
+      if (busy) return false;
+      setBusy(true);
+      setStatus('儲存中，請稍候…');
+      try {
+        await task();
+        setStatus(doneMessage + '網站約 1～2 分鐘後更新。');
+        return true;
+      } catch (e) {
+        console.error('[後台]', e);
+        if (e.status === 401) { logout(); }
+        setStatus('儲存失敗：' + explain(e), true);
+        await reloadAll().catch(() => {});
+        return false;
+      } finally {
+        setBusy(false);
+        renderNotices(); // 重新產生按鈕，恢復「往前／往後」在頭尾的停用狀態
+        renderSlides();
+      }
+    }
+
+    /* ---------------- 登入／登出（F-23） ---------------- */
+
+    async function login(value, remember) {
+      token = value.trim();
+      setStatus('登入中…');
+      try {
+        const repo = await api('GET', repoPath());
+        if (!repo.permissions || !repo.permissions.push) {
+          throw Object.assign(new Error('這個 token 沒有寫入權限：請確認你已被加入 repo，且 token 的 Contents 權限為 Read and write'), { status: 0 });
+        }
+        let name = '';
+        try { name = (await api('GET', '/user')).login; } catch (e) { /* 只有 Contents 權限時可能讀不到，略過 */ }
+        if (remember !== undefined) saveToken(token, remember);
+        $('who').textContent = name ? '已登入：' + name : '已登入';
+        $('who').hidden = false;
+        $('logout').hidden = false;
+        $('history-link').hidden = false;
+        $('login-view').hidden = true;
+        $('app-view').hidden = false;
+        await reloadAll();
+        setStatus('');
+      } catch (e) {
+        console.error('[後台] 登入失敗', e);
+        token = '';
+        clearToken();
+        setStatus('登入失敗：' + explain(e), true);
+      }
+    }
+
+    function logout() {
+      token = '';
+      clearToken();
+      notices = [];
+      slides = [];
+      $('who').hidden = true;
+      $('logout').hidden = true;
+      $('history-link').hidden = true;
+      $('app-view').hidden = true;
+      $('login-view').hidden = false;
+      $('token-input').value = '';
+    }
+
+    $('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = $('token-input').value.trim();
+      if (!value) { setStatus('請貼上 token', true); $('token-input').focus(); return; }
+      login(value, $('remember').checked);
+    });
+    $('logout').addEventListener('click', () => { logout(); setStatus('已登出'); });
+
+    async function reloadAll() {
+      const [n, c] = await Promise.all([readJson(NOTICES_PATH), readJson(CAROUSEL_PATH)]);
+      notices = Array.isArray(n.data.notices) ? n.data.notices : [];
+      slides = Array.isArray(c.data.slides) ? c.data.slides : [];
+      renderNotices();
+      renderSlides();
+    }
+
+    /* ---------------- 分頁 ---------------- */
+
+    const tabs = [$('tab-notices'), $('tab-carousel')];
+    function selectTab(tab, focus) {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        $(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => selectTab(t));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        selectTab(tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length], true);
+      });
+    });
+
+    /* ---------------- 共用對話框 ---------------- */
+
+    document.querySelectorAll('dialog [data-close]').forEach((b) => {
+      b.addEventListener('click', () => b.closest('dialog').close());
+    });
+
+    function confirmDelete(text) {
+      return new Promise((resolve) => {
+        const d = $('confirm-dialog');
+        $('confirm-text').textContent = text;
+        d.returnValue = '';
+        d.addEventListener('close', () => resolve(d.returnValue === 'ok'), { once: true });
+        d.showModal();
+        d.querySelector('button[value="cancel"]').focus();
+      });
+    }
+
+    function smallBtn(text, onClick, extra) {
+      const b = el('button', 'btn btn-small ' + (extra || 'btn-ghost'), text);
+      b.type = 'button';
+      b.disabled = busy;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    /* ---------------- 公告（F-24） ---------------- */
+
+    // 與網站相同的日期解析（接受 2026/11/8、2026-11-08）
+    function parseDate(raw) {
+      const m = /^(\d{4})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{1,2})$/.exec(String(raw || '').trim());
+      if (!m) return null;
+      const y = +m[1], mo = +m[2], d = +m[3];
+      const check = new Date(Date.UTC(y, mo - 1, d));
+      if (check.getUTCFullYear() !== y || check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d) return null;
+      return { key: y * 10000 + mo * 100 + d, iso: y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0') };
+    }
+
+    function sortedNotices() {
+      return notices.map((n, row) => ({ n, row, p: parseDate(n.date) })).sort((a, b) => {
+        const ap = a.n.pinned === true, bp = b.n.pinned === true;
+        if (ap !== bp) return ap ? -1 : 1;
+        if (!!a.p !== !!b.p) return a.p ? -1 : 1;
+        if (a.p && a.p.key !== b.p.key) return b.p.key - a.p.key;
+        return b.row - a.row;
+      });
+    }
+
+    function renderNotices() {
+      const list = $('notice-list');
+      list.replaceChildren();
+      if (!token) return;
+      if (!notices.length) { list.appendChild(el('li', 'empty', '目前沒有公告')); return; }
+      sortedNotices().forEach(({ n, p }) => {
+        const title = String(n.title || '').trim();
+        const off = n.visible === false || !title || !String(n.date || '').trim();
+        const li = el('li', off ? 'is-off' : '');
+        const head = el('div', 'item-head');
+        if (n.pinned) head.appendChild(el('span', 'badge', '置頂'));
+        if (n.visible === false) head.appendChild(el('span', 'badge badge-muted', '已下架'));
+        else if (off) head.appendChild(el('span', 'badge badge-muted', '未顯示：缺少日期或標題'));
+        head.appendChild(el('span', 'item-date', p ? p.iso.replace(/-/g, '/') : (n.date || '（無日期）') + (n.date ? '（日期格式無法辨識）' : '')));
+        li.appendChild(head);
+        li.appendChild(el('p', 'item-title', title || '（無標題）'));
+        if (n.body) li.appendChild(el('p', 'item-body', n.body));
+        const actions = el('div', 'item-actions');
+        actions.appendChild(smallBtn('編輯', () => openNotice(n)));
+        actions.appendChild(smallBtn(n.visible === false ? '重新上架' : '下架', () => toggleNotice(n)));
+        actions.appendChild(smallBtn('刪除', () => deleteNotice(n), 'btn-danger'));
+        li.appendChild(actions);
+        list.appendChild(li);
+      });
+    }
+
+    let editingNoticeId = null;
+
+    function openNotice(n) {
+      editingNoticeId = n ? n.id : null;
+      $('notice-dialog-title').textContent = n ? '編輯公告' : '新增公告';
+      const p = n ? parseDate(n.date) : null;
+      const today = new Date();
+      $('n-date').value = n ? (p ? p.iso : '') :
+        today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      $('n-title').value = n ? (n.title || '') : '';
+      $('n-body').value = n ? (n.body || '') : '';
+      $('n-pinned').checked = n ? n.pinned === true : false;
+      $('n-visible').checked = n ? n.visible !== false : true;
+      $('notice-error').textContent = '';
+      $('notice-dialog').showModal();
+      $('n-title').focus();
+    }
+
+    $('add-notice').addEventListener('click', () => openNotice(null));
+
+    $('notice-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const date = $('n-date').value;
+      const title = $('n-title').value.trim();
+      const err = $('notice-error');
+      if (!date) { err.textContent = '請選擇日期'; $('n-date').focus(); return; }
+      if (!title) { err.textContent = '請填寫標題'; $('n-title').focus(); return; }
+      err.textContent = '';
+      const fields = {
+        date: date,
+        title: title,
+        body: $('n-body').value.replace(/\r\n/g, '\n').trim(),
+        pinned: $('n-pinned').checked,
+        visible: $('n-visible').checked
+      };
+      const id = editingNoticeId;
+      $('notice-dialog').close();
+      const ok = await run(async () => {
+        notices = await updateJson(NOTICES_PATH, 'notices', (list) => {
+          if (id) Object.assign(list[findIndex(list, id, '則公告')], fields);
+          else list.push(Object.assign({ id: newId() }, fields));
+        }, (id ? '公告：修改「' : '公告：新增「') + title + '」（後台）');
+        renderNotices();
+      }, id ? '公告已更新。' : '公告已新增。');
+      if (!ok && token) $('notice-dialog').showModal(); // 失敗時重新打開，剛才填的內容還在
+    });
+
+    function toggleNotice(n) {
+      const show = n.visible === false;
+      run(async () => {
+        notices = await updateJson(NOTICES_PATH, 'notices', (list) => {
+          list[findIndex(list, n.id, '則公告')].visible = show;
+        }, '公告：' + (show ? '重新上架' : '下架') + '「' + (n.title || '') + '」（後台）');
+        renderNotices();
+      }, show ? '公告已重新上架。' : '公告已下架（資料保留，可重新上架）。');
+    }
+
+    async function deleteNotice(n) {
+      if (!await confirmDelete('公告「' + (n.title || '（無標題）') + '」刪除後無法從後台復原。只是暫時不想顯示的話，請改用「下架」。')) return;
+      run(async () => {
+        notices = await updateJson(NOTICES_PATH, 'notices', (list) => {
+          list.splice(findIndex(list, n.id, '則公告'), 1);
+        }, '公告：刪除「' + (n.title || '') + '」（後台）');
+        renderNotices();
+      }, '公告已刪除。');
+    }
+
+    /* ---------------- 輪播照片（F-26） ---------------- */
+
+    const uploadedPreview = {}; // 這次上傳的照片：網站尚未部署完成前，用本機預覽顯示
+
+    function thumbSrc(src) { return uploadedPreview[src] || src; }
+
+    function renderSlides() {
+      const list = $('slide-list');
+      list.replaceChildren();
+      if (!token) return;
+      if (!slides.length) { list.appendChild(el('li', 'empty', '目前沒有照片，首頁不會顯示輪播')); return; }
+      slides.forEach((s, i) => {
+        const li = el('li', 'slide');
+        const img = el('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.src = thumbSrc(s.src);
+        // 網站還沒部署完成時，改從 GitHub 原始檔讀取（SVG 範例圖無法用這個方式顯示）
+        img.addEventListener('error', function retry() {
+          img.removeEventListener('error', retry);
+          img.src = 'https://raw.githubusercontent.com/' + CONFIG.owner + '/' + CONFIG.repo + '/' + CONFIG.branch + '/' + s.src;
+        });
+        li.appendChild(img);
+        const info = el('div');
+        info.appendChild(el('p', 'slide-no', '第 ' + (i + 1) + ' 張'));
+        info.appendChild(el('p', 'item-title', s.alt || '（沒有照片描述，請補上）'));
+        if (s.caption) info.appendChild(el('p', 'item-body', '照片文字：' + s.caption));
+        const actions = el('div', 'item-actions');
+        const up = smallBtn('↑ 往前', () => moveSlide(s, -1));
+        const down = smallBtn('↓ 往後', () => moveSlide(s, 1));
+        up.disabled = busy || i === 0;
+        down.disabled = busy || i === slides.length - 1;
+        actions.appendChild(up);
+        actions.appendChild(down);
+        actions.appendChild(smallBtn('編輯文字', () => openSlide(s)));
+        actions.appendChild(smallBtn('刪除', () => deleteSlide(s), 'btn-danger'));
+        info.appendChild(actions);
+        li.appendChild(info);
+        list.appendChild(li);
+      });
+    }
+
+    let editingSlideId = null;
+    let pickedPhoto = null; // { blob, url }
+
+    function openSlide(s) {
+      editingSlideId = s ? s.id : null;
+      $('slide-dialog-title').textContent = s ? '編輯照片文字' : '上傳照片';
+      $('s-file-field').hidden = !!s;
+      $('s-consent-field').hidden = !!s;
+      $('s-file').value = '';
+      $('s-consent').checked = false;
+      $('s-alt').value = s ? (s.alt || '') : '';
+      $('s-caption').value = s ? (s.caption || '') : '';
+      $('slide-error').textContent = '';
+      const preview = $('s-preview');
+      if (pickedPhoto) { URL.revokeObjectURL(pickedPhoto.url); pickedPhoto = null; }
+      preview.hidden = !s;
+      if (s) preview.src = thumbSrc(s.src);
+      $('slide-dialog').showModal();
+      (s ? $('s-alt') : $('s-file')).focus();
+    }
+
+    $('add-slide').addEventListener('click', () => openSlide(null));
+
+    // 縮小並重新壓成 JPEG；重新繪製也會移除 EXIF（含 GPS 拍攝地點）
+    async function compressPhoto(file) {
+      let source;
+      try {
+        source = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      } catch (e) {
+        throw new Error('無法讀取這張照片，請改用 JPG 或 PNG 格式');
+      }
+      const scale = Math.min(1, PHOTO_MAX_WIDTH / source.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(source.width * scale);
+      canvas.height = Math.round(source.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF'; // PNG 透明處補白底
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+      if (source.close) source.close();
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', PHOTO_QUALITY));
+      if (!blob) throw new Error('照片壓縮失敗，請換一張再試');
+      return blob;
+    }
+
+    $('s-file').addEventListener('change', async () => {
+      const file = $('s-file').files[0];
+      const preview = $('s-preview');
+      const err = $('slide-error');
+      if (pickedPhoto) { URL.revokeObjectURL(pickedPhoto.url); pickedPhoto = null; }
+      preview.hidden = true;
+      if (!file) return;
+      err.textContent = '照片處理中…';
+      try {
+        const blob = await compressPhoto(file);
+        pickedPhoto = { blob, url: URL.createObjectURL(blob) };
+        preview.src = pickedPhoto.url;
+        preview.hidden = false;
+        err.textContent = '';
+      } catch (e) {
+        err.textContent = e.message;
+      }
+    });
+
+    $('slide-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = $('slide-error');
+      const alt = $('s-alt').value.trim();
+      const caption = $('s-caption').value.trim();
+      const id = editingSlideId;
+      if (!id && !pickedPhoto) { err.textContent = '請選擇照片'; $('s-file').focus(); return; }
+      if (!alt) { err.textContent = '請填寫照片內容描述'; $('s-alt').focus(); return; }
+      if (!id && !$('s-consent').checked) { err.textContent = '請確認已取得家長同意'; $('s-consent').focus(); return; }
+      err.textContent = '';
+      const photo = pickedPhoto;
+      pickedPhoto = null;
+      $('slide-dialog').close();
+
+      if (id) {
+        await run(async () => {
+          slides = await updateJson(CAROUSEL_PATH, 'slides', (list) => {
+            Object.assign(list[findIndex(list, id, '張照片')], { alt, caption });
+          }, '輪播：修改照片文字「' + alt + '」（後台）');
+          renderSlides();
+        }, '照片文字已更新。');
+        return;
+      }
+
+      const newIdValue = newId();
+      const src = PHOTO_DIR + newIdValue + '.jpg';
+      await run(async () => {
+        const bytes = new Uint8Array(await photo.blob.arrayBuffer());
+        await api('PUT', contentsPath(src), {
+          message: '輪播：上傳照片「' + alt + '」（後台）',
+          content: bytesToBase64(bytes),
+          branch: CONFIG.branch
+        });
+        uploadedPreview[src] = photo.url;
+        slides = await updateJson(CAROUSEL_PATH, 'slides', (list) => {
+          list.push({ id: newIdValue, src, alt, caption });
+        }, '輪播：新增照片「' + alt + '」（後台）');
+        renderSlides();
+      }, '照片已上傳，排在最後一張。');
+    });
+
+    function moveSlide(s, dir) {
+      run(async () => {
+        slides = await updateJson(CAROUSEL_PATH, 'slides', (list) => {
+          const i = findIndex(list, s.id, '張照片');
+          const j = i + dir;
+          if (j < 0 || j >= list.length) return;
+          const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+        }, '輪播：調整照片順序（後台）');
+        renderSlides();
+      }, '順序已更新。');
+    }
+
+    async function deleteSlide(s) {
+      if (!await confirmDelete('照片「' + (s.alt || '（沒有描述）') + '」會從首頁輪播移除，照片檔也會一併刪除。')) return;
+      run(async () => {
+        slides = await updateJson(CAROUSEL_PATH, 'slides', (list) => {
+          list.splice(findIndex(list, s.id, '張照片'), 1);
+        }, '輪播：移除照片「' + (s.alt || '') + '」（後台）');
+        renderSlides();
+        // 其他照片沒有用到同一個檔案時，一併刪除照片檔
+        if (s.src.indexOf(PHOTO_DIR) === 0 && !slides.some((x) => x.src === s.src)) {
+          try {
+            const file = await api('GET', contentsPath(s.src) + '?ref=' + encodeURIComponent(CONFIG.branch));
+            await api('DELETE', contentsPath(s.src), {
+              message: '輪播：刪除照片檔 ' + s.src + '（後台）', sha: file.sha, branch: CONFIG.branch
+            });
+          } catch (e) {
+            if (e.status !== 404) console.warn('[後台] 照片檔刪除失敗，已從輪播移除', e);
+          }
+        }
+      }, '照片已刪除。');
+    }
+
+    /* ---------------- 啟動 ---------------- */
+
+    $('repo-name-hint').textContent = CONFIG.owner + '/' + CONFIG.repo;
+    $('history-link').href = 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/commits/' + CONFIG.branch + '/';
+    const saved = loadToken();
+    if (saved) login(saved);
+  })();
+  </script>
+</body>
+</html>

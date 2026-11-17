@@ -1,0 +1,28 @@
+{
+  "slides": [
+    {
+      "id": "demo-slide-1",
+      "src": "files/carousel/slide-1.svg",
+      "alt": "【範例】學員在山林步道上合影",
+      "caption": "【範例】走進山林，一起探索、一起長大"
+    },
+    {
+      "id": "demo-slide-2",
+      "src": "files/carousel/slide-2.svg",
+      "alt": "【範例】學員在溪邊觀察水中生物",
+      "caption": "【範例】溪流生態觀察"
+    },
+    {
+      "id": "demo-slide-3",
+      "src": "files/carousel/slide-3.svg",
+      "alt": "【範例】晚會時學員圍坐表演",
+      "caption": "【範例】營火晚會"
+    },
+    {
+      "id": "demo-slide-4",
+      "src": "files/carousel/slide-4.svg",
+      "alt": "【範例】小隊合作完成闖關任務",
+      "caption": "【範例】小隊闖關"
+    }
+  ]
+}

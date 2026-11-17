@@ -1,0 +1,76 @@
+{
+  "notices": [
+    {
+      "id": "demo-01",
+      "date": "2026/11/01",
+      "title": "【範例】冬令營報名開始",
+      "body": "歡迎各位家長為孩子報名，名額有限，額滿為止。",
+      "pinned": false,
+      "visible": true
+    },
+    {
+      "id": "demo-02",
+      "date": "2026/11/8",
+      "title": "【範例】行前說明會時間公布",
+      "body": "說明會將於 12/20（六）上午 10:00 舉行，地點：活動中心二樓。\n請攜帶：身分證影本、健保卡影本。\n詳細資訊：https://example.com/briefing，歡迎提早到場。",
+      "pinned": false,
+      "visible": true
+    },
+    {
+      "id": "demo-03",
+      "date": "2026-11-05",
+      "title": "【範例】置頂：集合地點異動",
+      "body": "原訂集合地點改為【範例】學校正門口。\n造成不便，敬請見諒。",
+      "pinned": true,
+      "visible": true
+    },
+    {
+      "id": "demo-04",
+      "date": "2026/11/03",
+      "title": "【範例】置頂：報名注意事項提醒",
+      "body": "請先詳閱下方「報名注意事項」再填寫報名表。",
+      "pinned": true,
+      "visible": true
+    },
+    {
+      "id": "demo-05",
+      "date": "2026/11/08",
+      "title": "【範例】同日第二則公告（應排在同日第一則之前）",
+      "body": "這則與「行前說明會」同一天，因為在試算表中較下方，應該排在它前面。",
+      "pinned": false,
+      "visible": true
+    },
+    {
+      "id": "demo-06",
+      "date": "2026/10/20",
+      "title": "【範例】已下架公告（不應出現）",
+      "body": "這則的「顯示」欄填了 N，網頁上不應該出現。",
+      "pinned": false,
+      "visible": false
+    },
+    {
+      "id": "demo-07",
+      "date": "下週一",
+      "title": "【範例】日期無效的公告（應排在最後）",
+      "body": "這則的日期無法解析，應該照原文字顯示，並排在非置頂公告的最後面。",
+      "pinned": false,
+      "visible": true
+    },
+    {
+      "id": "demo-08",
+      "date": "2026/11/06",
+      "title": "【範例】特殊字元測試",
+      "body": "這行有 <b>測試</b>，應顯示原始文字而不是粗體。\n這行有 \"雙引號\"、逗號,以及 javascript:alert(1)，都應該是純文字。",
+      "pinned": false,
+      "visible": true
+    },
+    {
+      "id": "demo-10",
+      "date": "2026/11/07",
+      "title": "",
+      "body": "這則沒有標題，不應該出現。",
+      "pinned": false,
+      "visible": true
+    }
+  ]
+}

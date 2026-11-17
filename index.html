@@ -101,6 +101,7 @@
       border-radius: 16px; background: var(--green-dark);
     }
     .carousel-track::-webkit-scrollbar { display: none; }
+    .carousel-track:empty { display: none; } /* 照片尚未載入、載入失敗或沒有照片 */
     @media (prefers-reduced-motion: no-preference) { .carousel-track { scroll-behavior: smooth; } }
     .carousel-slide {
       position: relative; flex: 0 0 100%; margin: 0;
@@ -363,9 +364,7 @@
   </header>
 
   <!-- 首頁分頁：照片輪播
-       增減照片：複製或刪除一個 <li class="carousel-slide">…</li>；
-       張數、圓點、「第 N 張」標示由程式自動產生。
-       照片建議 1600×900（16:9）、壓縮到 300KB 以下；alt 寫照片內容，figcaption 可省略。 -->
+       照片清單在 data/carousel.json，由後台（admin.html）管理；程式讀取後產生每張照片、圓點與「第 N 張」標示。 -->
   <section class="carousel" data-view="home" aria-roledescription="carousel" aria-labelledby="camp-title">
     <h1 id="camp-title" class="visually-hidden">【範例】2026 冬令營</h1>
     <div class="carousel-viewport">
@@ -377,32 +376,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
-      <ul class="carousel-track" tabindex="0" aria-label="營隊照片（可左右滑動）">
-        <li class="carousel-slide">
-          <figure>
-            <img src="files/carousel/slide-1.svg" alt="【範例】學員在山林步道上合影" width="1600" height="900">
-            <figcaption>【範例】走進山林，一起探索、一起長大</figcaption>
-          </figure>
-        </li>
-        <li class="carousel-slide">
-          <figure>
-            <img src="files/carousel/slide-2.svg" alt="【範例】學員在溪邊觀察水中生物" width="1600" height="900" loading="lazy">
-            <figcaption>【範例】溪流生態觀察</figcaption>
-          </figure>
-        </li>
-        <li class="carousel-slide">
-          <figure>
-            <img src="files/carousel/slide-3.svg" alt="【範例】晚會時學員圍坐表演" width="1600" height="900" loading="lazy">
-            <figcaption>【範例】營火晚會</figcaption>
-          </figure>
-        </li>
-        <li class="carousel-slide">
-          <figure>
-            <img src="files/carousel/slide-4.svg" alt="【範例】小隊合作完成闖關任務" width="1600" height="900" loading="lazy">
-            <figcaption>【範例】小隊闖關</figcaption>
-          </figure>
-        </li>
-      </ul>
+      <ul class="carousel-track" tabindex="0" aria-label="營隊照片（可左右滑動）"></ul>
     </div>
     <div class="carousel-bar">
       <button type="button" class="carousel-toggle"></button>
@@ -570,11 +544,9 @@
      * 設定區：一般維護只需要改這裡
      * ============================================================ */
 
-    // 公告 CSV 網址。
-    // demo 階段讀取同資料夾的 demo-data.csv；
-    // 換成 Google 試算表時，請貼上「檔案 → 共用 → 發布到網路」中，
-    // 只選「公告」工作表、格式選 CSV 所產生的網址。
-    var CSV_URL = 'demo-data.csv';
+    // 公告與輪播照片的資料檔，由後台（admin.html）透過 GitHub API 更新（規格書 §7.5）
+    var NOTICES_URL = 'data/notices.json';
+    var CAROUSEL_URL = 'data/carousel.json';
 
     // 報名表單網址（Google 表單）
     var FORM_URL = 'https://example.com/form';
@@ -601,7 +573,6 @@
     /* ============================================================ */
 
     var FETCH_TIMEOUT_MS = 15000;
-    var REQUIRED_FIELDS = ['日期', '標題', '內容', '置頂', '顯示'];
 
     var dateFormatter = new Intl.DateTimeFormat('zh-TW', {
       timeZone: 'Asia/Taipei',
@@ -721,9 +692,39 @@
     // 沒有 JS 時照片仍可左右滑動（控制項隱藏）。
     var CAROUSEL_INTERVAL_MS = 5000;
 
-    function initCarousel() {
+    // 依 data/carousel.json 產生照片（F-21、F-28）；讀取失敗或沒有照片時輪播區不顯示
+    function loadCarousel() {
       var box = document.querySelector('.carousel');
       if (!box) return;
+      var track = box.querySelector('.carousel-track');
+      fetchJson(CAROUSEL_URL)
+        .then(function (data) {
+          var slides = (data && Array.isArray(data.slides) ? data.slides : []).filter(function (s) {
+            return s && typeof s.src === 'string' && /^files\/carousel\/[A-Za-z0-9._-]+$/.test(s.src);
+          });
+          slides.forEach(function (s, i) {
+            var li = el('li', 'carousel-slide');
+            var figure = el('figure');
+            var img = el('img');
+            img.src = s.src;
+            img.alt = clean(s.alt);
+            img.width = 1600;
+            img.height = 900;
+            if (i === 0) img.setAttribute('fetchpriority', 'high');
+            else img.loading = 'lazy';
+            figure.appendChild(img);
+            if (clean(s.caption)) figure.appendChild(el('figcaption', null, clean(s.caption)));
+            li.appendChild(figure);
+            track.appendChild(li);
+          });
+          initCarousel(box);
+        })
+        .catch(function (reason) {
+          if (window.console) console.error('[輪播] 載入失敗：', reason);
+        });
+    }
+
+    function initCarousel(box) {
       var track = box.querySelector('.carousel-track');
       var slides = Array.prototype.slice.call(track.children);
       var total = slides.length;
@@ -884,25 +885,26 @@
       return value == null ? '' : String(value).trim();
     }
 
-    function toNotices(rows) {
+    // data/notices.json 的 notices 陣列：{ id, date, title, body, pinned, visible }，陣列順序 = 新增順序
+    function toNotices(items) {
       var list = [];
-      rows.forEach(function (row, index) {
-        var date = clean(row['日期']);
-        var title = clean(row['標題']);
-        var hidden = clean(row['顯示']).toUpperCase() === 'N';
-        if (!date || !title || hidden) return; // F-1
+      (Array.isArray(items) ? items : []).forEach(function (item, index) {
+        if (!item || typeof item !== 'object') return;
+        var date = clean(item.date);
+        var title = clean(item.title);
+        if (!date || !title || item.visible === false) return; // F-1
         var parsed = parseDate(date);
         list.push({
           row: index,
           dateText: parsed ? parsed.text : date,
           dateKey: parsed ? parsed.key : null,
           title: title,
-          body: clean(row['內容']),
-          pinned: clean(row['置頂']).toUpperCase() === 'Y'
+          body: clean(item.body),
+          pinned: item.pinned === true
         });
       });
 
-      // F-2：置頂在前；組內日期新到舊；同日則試算表較下方者在前；無效日期排在組內最後
+      // F-2：置頂在前；組內日期新到舊；同日則較晚新增者（陣列中較後面）在前；無效日期排在組內最後
       list.sort(function (a, b) {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
         var aValid = a.dateKey !== null, bValid = b.dateKey !== null;
@@ -1034,9 +1036,24 @@
         .finally(function () { if (timer) clearTimeout(timer); });
     }
 
+    // 讀取 JSON 資料檔（公告、輪播），回傳解析後的物件（Promise）
+    function fetchJson(url) {
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = controller ? setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS) : null;
+      return fetch(withCacheBuster(url), { cache: 'no-store', signal: controller ? controller.signal : undefined })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .finally(function () { if (timer) clearTimeout(timer); });
+    }
+
     function loadNotices() {
-      fetchCsv(CSV_URL, REQUIRED_FIELDS)
-        .then(function (rows) { renderNotices(toNotices(rows)); })
+      fetchJson(NOTICES_URL)
+        .then(function (data) {
+          if (!data || !Array.isArray(data.notices)) throw new Error('資料格式錯誤：缺少 notices 陣列');
+          renderNotices(toNotices(data.notices));
+        })
         .catch(showLoadError);
     }
 
@@ -1311,7 +1328,7 @@
     syncTopbarHeight();
     window.addEventListener('resize', syncTopbarHeight);
 
-    initCarousel();
+    loadCarousel();
     renderRegister();
     setInterval(function () {
       renderRegister();   // 頁面開著跨過開放／截止時間時自動切換
