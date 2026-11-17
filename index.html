@@ -192,6 +192,21 @@
     }
     .btn:hover { background: var(--green-dark); color: #FFFFFF; }
 
+    /* 報名須知頁最底下：真正連到外部報名表的大按鈕 */
+    .register-final {
+      margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line);
+      display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    }
+    .register-final p { margin: 0; }
+    .register-final .register-note { width: auto; }
+    .btn-lg {
+      display: block; width: 100%; max-width: 26rem;
+      padding: 20px 32px;
+      font-size: 1.375rem; letter-spacing: 0.05em;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+    .btn-lg::after { content: " ↗"; }
+
     /* ---------- 主內容：每個區段一張白色卡片 ---------- */
     main { max-width: var(--page-w); margin: 0 auto; padding: 32px 16px 0; }
     html[data-current="home"] main { padding-top: 24px; }
@@ -218,19 +233,8 @@
     .section > h2:focus { outline: none; }
     .lead { margin: -4px 0 16px; color: var(--muted); }
 
-    /* 首頁：入口卡片 */
+    /* 首頁：公告摘要「看全部」連結 */
     .see-all { margin: 14px 0 0; font-weight: 700; }
-    .entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-    @media (min-width: 640px) { .entries { grid-template-columns: repeat(3, 1fr); } }
-    .entries a {
-      display: block; height: 100%;
-      padding: 16px; border: 1px solid var(--line); border-radius: 12px;
-      color: var(--text); text-decoration: none;
-    }
-    .entries a:hover { border-color: var(--green); background: var(--green-soft); }
-    .entries b { display: block; color: var(--green-dark); font-size: 1.0625rem; }
-    .entries b::after { content: " →"; }
-    .entries span { display: block; margin-top: 4px; color: var(--muted); font-size: 0.9375rem; line-height: 1.6; }
 
     /* 公告 */
     .notice-state {
@@ -409,7 +413,7 @@
 
   <main id="main" tabindex="-1">
 
-    <!-- 首頁分頁：報名小卡片（基本資訊 + 依 REG_OPEN／REG_CLOSE 切換的報名按鈕） -->
+    <!-- 首頁分頁：報名小卡片（基本資訊 + 依 REG_OPEN／REG_CLOSE 切換的報名按鈕；按鈕先連到報名須知） -->
     <section class="section register-card" data-view="home" aria-labelledby="register-title">
       <h2 id="register-title">報名資訊</h2>
       <ul class="facts" aria-label="營隊基本資訊">
@@ -431,16 +435,6 @@
       <div id="digest-area" aria-live="polite">
         <p class="notice-state">公告載入中…</p>
       </div>
-    </section>
-
-    <!-- 首頁分頁：其他分頁入口（說明文字由 Alice 維護） -->
-    <section class="section" data-view="home" aria-labelledby="entry-title">
-      <h2 id="entry-title">參加前請先看</h2>
-      <ul class="entries">
-        <li><a href="#reg-rules"><b>報名注意事項</b><span>填表方式、錄取公告、取消報名</span></a></li>
-        <li><a href="#camp-rules"><b>營隊注意事項</b><span>攜帶物品、活動規範、接送與請假</span></a></li>
-        <li><a href="#checkin"><b>報到單下載</b><span>列印填寫後，報到當天交給工作人員</span></a></li>
-      </ul>
     </section>
 
     <!-- 關於我們分頁（內容由 Alice 維護；每段一個 <div class="rule-group">，可增減） -->
@@ -493,6 +487,11 @@
         <li>【範例】活動期間請穿著輕便服裝與運動鞋，並自備水壺。</li>
         <li>【範例】若需取消報名，請於活動開始 7 天前來信告知。</li>
       </ol>
+      <!-- 真正的報名表按鈕（連到 FORM_URL），放在報名須知最底下，讀完須知才看到 -->
+      <div class="register-final" id="register-final">
+        <!-- 由程式依 REG_OPEN／REG_CLOSE 填入；以下為 JS 無法執行時的備用內容 -->
+        <p class="register-status">請開啟 JavaScript 以查看報名狀態。</p>
+      </div>
     </section>
 
     <!-- 錄取名單：資料來自另一份試算表（ADMIT_CSV_URL），進入此分頁時才讀取（規格書 §7.3） -->
@@ -677,30 +676,43 @@
       return p;
     }
 
-    function renderRegister() {
-      var box = document.getElementById('register');
-      var now = Date.now();
-      var state = now < openTime ? 'before' : (now < closeTime ? 'open' : 'closed');
-      if (state === lastRegState) return;
-      lastRegState = state;
-
+    // 首頁（#register）：開放中的按鈕先連到報名須知分頁
+    // 報名須知最底下（#register-final）：開放中顯示大按鈕，另開新分頁連到外部報名表
+    function fillRegister(box, state, isFinal) {
       box.replaceChildren();
 
       if (state === 'before') {
         box.appendChild(dateLine('register-status', '報名將於 ', openTime, ' 開放'));
         box.appendChild(dateLine('register-note', '報名截止：', closeTime));
       } else if (state === 'open') {
-        var a = el('a', 'btn', '前往報名表');
-        a.href = FORM_URL;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.setAttribute('aria-label', '前往報名表（另開新分頁）');
+        var a;
+        if (isFinal) {
+          box.appendChild(el('p', 'register-status', '已閱讀以上注意事項，請點下方按鈕填寫報名表'));
+          a = el('a', 'btn btn-lg', '填寫報名表');
+          a.href = FORM_URL;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.setAttribute('aria-label', '填寫報名表（另開新分頁）');
+        } else {
+          a = el('a', 'btn', '前往報名表');
+          a.href = '#reg-rules';
+        }
         box.appendChild(a);
         box.appendChild(dateLine('register-note', '報名開放中・截止 ', closeTime));
       } else {
         box.appendChild(el('p', 'register-closed', '報名已截止'));
         box.appendChild(el('p', 'register-note', '感謝大家的支持，請持續留意最新公告。'));
       }
+    }
+
+    function renderRegister() {
+      var now = Date.now();
+      var state = now < openTime ? 'before' : (now < closeTime ? 'open' : 'closed');
+      if (state === lastRegState) return;
+      lastRegState = state;
+
+      fillRegister(document.getElementById('register'), state, false);
+      fillRegister(document.getElementById('register-final'), state, true);
     }
 
     /* ---------------- 首頁照片輪播（F-21） ---------------- */

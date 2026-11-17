@@ -51,9 +51,8 @@ var ADMIT_SHOW_UNTIL = '2027-01-25T00:00:00+08:00'; // 名單顯示到何時（�
 | 首頁照片輪播 | `<section class="carousel"`（見 1.5） |
 | 日期、地點、對象、名額、費用 | `<ul class="facts"`（首頁「報名資訊」卡片） |
 | 關於我們 | `data-view="about"`（每段一個 `<div class="rule-group">`，可增減；年表在 `<ul class="timeline">`） |
-| 首頁「參加前請先看」入口卡片的說明文字 | `<ul class="entries">` |
 | 營隊注意事項 | `data-view="camp-rules"`（每組一個 `<div class="rule-group">`，可增減） |
-| 報名注意事項 | `data-view="reg-rules"` |
+| 報名注意事項 | `data-view="reg-rules"`（最底下的「填寫報名表」大按鈕由程式產生，連到 `FORM_URL`） |
 | 報到單說明文字、下載檔名 | `data-view="checkin"` |
 | 聯絡信箱、主辦單位 | `<footer class="site-footer">` |
 | 主色 | CSS 開頭 `--green`（目前 `#2F6B4F`；改色後確認與白色對比 ≥ 4.5:1） |
@@ -71,7 +70,7 @@ var ADMIT_SHOW_UNTIL = '2027-01-25T00:00:00+08:00'; // 名單顯示到何時（�
 ### 1.4 分頁
 
 - 網頁上方的選單是分頁，一次只顯示一個分頁。網址 `#xxx` 會顯示所有 `data-view="xxx"` 的區塊，例如 `…/#notices` 顯示公告分頁
-- 「首頁」分頁（`data-view="home"`）不在選單中，由左上角 Logo 連回；由四個區塊組成：照片輪播、報名資訊卡片（基本資訊＋報名按鈕）、最新公告摘要、入口卡片
+- 「首頁」分頁（`data-view="home"`）不在選單中，由左上角 Logo 連回；由三個區塊組成：照片輪播、報名資訊卡片（基本資訊＋報名按鈕，按鈕先連到報名須知分頁）、最新公告摘要
 - 新增分頁：複製一個 `<section class="section" data-view="…">` 改成新名稱，並在 `<nav class="site-nav">` 加一個 `href="#新名稱"` 的連結
 - 預設分頁是 HTML 中第一個出現的 `data-view`（目前是 `home`）
 - 選單文字要短（2～4 個字），手機上才放得下；完整名稱寫在各分頁的標題
