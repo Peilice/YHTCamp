@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E7F5F"/><stop offset="1" stop-color="#1F4A37"/></linearGradient></defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <circle cx="1240" cy="230" r="90" fill="#FFFFFF" opacity="0.55"/>
+  <path d="M0 720 L380 380 L620 600 L860 330 L1240 700 L1600 520 L1600 900 L0 900 Z" fill="#FFFFFF" opacity="0.18"/>
+  <path d="M0 820 L300 600 L560 760 L900 560 L1260 800 L1600 650 L1600 900 L0 900 Z" fill="#FFFFFF" opacity="0.28"/>
+  <text x="800" y="470" text-anchor="middle" font-family="system-ui, 'Microsoft JhengHei', 'PingFang TC', sans-serif" font-size="88" font-weight="700" fill="#FFFFFF">【範例照片 1】</text>
+</svg>

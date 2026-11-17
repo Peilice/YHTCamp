@@ -47,8 +47,12 @@
     }
     .skip-link:focus { top: 8px; }
     .nowrap { white-space: nowrap; }
+    .visually-hidden {
+      position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
 
-    /* ---------- 頂部固定列：名稱 + 分頁選單 ---------- */
+    /* ---------- 頂部固定列：Logo（回首頁）+ 分頁選單 ---------- */
     .topbar {
       position: sticky; top: 0; z-index: 20;
       background: var(--bg);
@@ -59,7 +63,12 @@
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px;
       padding: 8px 16px;
     }
-    .topbar .name { font-weight: 700; color: var(--green-dark); text-decoration: none; white-space: nowrap; }
+    .brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      color: var(--green-dark); text-decoration: none; border-radius: 10px;
+    }
+    .brand img { display: block; width: 40px; height: 40px; }
+    .topbar .name { font-weight: 700; white-space: nowrap; }
     .site-nav { flex: 1 1 auto; min-width: 0; }
     .site-nav ul {
       list-style: none; margin: 0; padding: 0;
@@ -74,35 +83,102 @@
     .site-nav a[aria-current="page"] { background: var(--green); color: #FFFFFF; font-weight: 700; }
     @media (max-width: 639.98px) {
       .topbar-inner { padding: 6px 12px 8px; gap: 2px; }
-      .topbar .name { width: 100%; font-size: 0.9375rem; }
+      .brand { width: 100%; gap: 8px; }
+      .brand img { width: 32px; height: 32px; }
+      .topbar .name { font-size: 0.9375rem; }
     }
     @media (min-width: 640px) { .site-nav ul { justify-content: flex-end; } }
 
-    /* ---------- 首頁 Hero：基本資訊 + 報名 ---------- */
-    .hero { background: var(--green); color: #FFFFFF; padding: 40px 16px 44px; }
-    .hero-inner { max-width: var(--page-w); margin: 0 auto; }
-    .hero h1 { margin: 0; font-size: clamp(1.875rem, 7vw, 2.75rem); line-height: 1.25; }
-    .hero .tagline { margin: 8px 0 20px; font-size: 1.0625rem; }
-    .hero a { color: #FFFFFF; }
-    .hero :focus-visible { outline-color: #FFFFFF; }
-
-    .facts { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-    .facts li {
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 8px; padding: 4px 12px; font-size: 0.9375rem;
+    /* ---------- 首頁：照片輪播 ---------- */
+    .carousel { position: relative; max-width: 64rem; margin: 0 auto; padding: 16px 16px 0; }
+    .carousel-viewport { position: relative; }
+    .carousel-track {
+      position: relative; /* 讓 slide.offsetLeft 以軌道為基準 */
+      display: flex; margin: 0; padding: 0; list-style: none;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain; /* 只鎖水平方向，頁面仍可上下捲 */
+      scrollbar-width: none; touch-action: manipulation;
+      border-radius: 16px; background: var(--green-dark);
     }
-    .facts b { margin-right: 6px; opacity: 0.85; }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    @media (prefers-reduced-motion: no-preference) { .carousel-track { scroll-behavior: smooth; } }
+    .carousel-slide {
+      position: relative; flex: 0 0 100%; margin: 0;
+      scroll-snap-align: center; scroll-snap-stop: always;
+      aspect-ratio: 16 / 9;
+    }
+    @media (max-width: 639.98px) { .carousel-slide { aspect-ratio: 4 / 3; } }
+    .carousel-slide figure { margin: 0; height: 100%; }
+    .carousel-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .carousel-slide figcaption {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 32px 16px 12px; color: #FFFFFF; font-weight: 700; line-height: 1.5;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+    }
+    @media (min-width: 640px) { .carousel-slide figcaption { padding: 48px 24px 16px; font-size: 1.125rem; } }
+
+    /* 控制項只在 JS 執行時顯示；沒有 JS 時照片仍可左右滑動 */
+    .carousel:not(.is-ready) .carousel-arrows,
+    .carousel:not(.is-ready) .carousel-bar { display: none; }
+    .carousel-arrows {
+      position: absolute; inset: 0; z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8px; pointer-events: none; /* 按鈕之間仍可滑動軌道 */
+    }
+    .carousel-arrows button {
+      pointer-events: auto; touch-action: manipulation;
+      width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer;
+      background: rgba(255, 255, 255, 0.92); color: var(--green-dark);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      display: grid; place-items: center;
+    }
+    .carousel-arrows button:hover { background: #FFFFFF; }
+    .carousel-arrows svg { width: 22px; height: 22px; }
+
+    .carousel-bar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 8px 16px; margin-top: 10px;
+    }
+    .carousel-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 32px; padding: 4px 14px; cursor: pointer; touch-action: manipulation;
+      font: inherit; font-size: 0.875rem; font-weight: 700; color: var(--green-dark);
+      background: var(--bg); border: 2px solid var(--green); border-radius: 999px;
+    }
+    .carousel-toggle:hover { background: var(--green-soft); }
+    .carousel-toggle svg { width: 12px; height: 12px; }
+    .carousel-markers { display: flex; align-items: center; gap: 4px; }
+    .carousel-markers button {
+      /* 點擊範圍 24×24，看得到的圓點 10px（border 透明 + background-clip） */
+      width: 24px; height: 24px; padding: 0; cursor: pointer; touch-action: manipulation;
+      border: 7px solid transparent; border-radius: 999px; background: var(--muted);
+      background-clip: padding-box;
+      transition: width 0.2s;
+    }
+    .carousel-markers button[aria-current="true"] { width: 40px; background-color: var(--green); } /* 用寬度（非只靠顏色）標示目前張 */
+    @media (prefers-reduced-motion: reduce) { .carousel-markers button { transition: none; } }
+
+    /* ---------- 首頁：報名小卡片 ---------- */
+    .section.register-card { border-top: 6px solid var(--green); }
+    .facts {
+      list-style: none; margin: 0 0 16px; padding: 0;
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .facts li {
+      background: var(--green-soft); border-radius: 8px;
+      padding: 4px 12px; font-size: 0.9375rem;
+    }
+    .facts b { margin-right: 6px; color: var(--green-dark); }
 
     .register { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
     .register p { margin: 0; }
-    .register-status { font-weight: 700; font-size: 1.125rem; }
-    .register-note { width: 100%; font-size: 0.9375rem; opacity: 0.92; }
+    .register-status { font-weight: 700; font-size: 1.125rem; color: var(--green-dark); }
+    .register-note { width: 100%; font-size: 0.9375rem; color: var(--muted); }
     .register .btn + .register-note { width: auto; }
     .register-closed {
       display: inline-block; padding: 10px 24px;
-      border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 999px;
-      font-weight: 700; font-size: 1.0625rem;
+      border: 2px solid var(--muted); border-radius: 999px;
+      font-weight: 700; font-size: 1.0625rem; color: var(--muted);
     }
 
     .btn {
@@ -115,11 +191,10 @@
       border-radius: 999px;
     }
     .btn:hover { background: var(--green-dark); color: #FFFFFF; }
-    .hero .btn { background: #FFFFFF; color: var(--green-dark); }
-    .hero .btn:hover { background: var(--green-soft); color: var(--green-dark); }
 
     /* ---------- 主內容：每個區段一張白色卡片 ---------- */
     main { max-width: var(--page-w); margin: 0 auto; padding: 32px 16px 0; }
+    html[data-current="home"] main { padding-top: 24px; }
     main:focus { outline: none; }
 
     .section {
@@ -229,6 +304,14 @@
     .rule-group + .rule-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--line); }
     .rule-group h3 { margin: 0 0 8px; font-size: 1.125rem; color: var(--green-dark); }
 
+    /* 關於我們（段落沿用 .rule-group 的分隔樣式） */
+    .rule-group p { margin: 0; }
+    .rule-group p + p { margin-top: 8px; }
+    .timeline { list-style: none; margin: 0; padding: 0; }
+    .timeline li { display: flex; gap: 12px; }
+    .timeline li + li { margin-top: 6px; }
+    .timeline b { flex: none; min-width: 4.5em; color: var(--green-dark); font-variant-numeric: tabular-nums; }
+
     /* 報到單 */
     .download-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 0 0 20px; }
     .download-bar .hint { margin: 0; color: var(--muted); font-size: 0.9375rem; }
@@ -249,6 +332,7 @@
     @media (min-width: 560px) { .footer-inner { grid-template-columns: repeat(2, max-content); } }
     .footer-title { margin: 0 0 2px; font-size: 0.9375rem; font-weight: 700; color: #FFFFFF; }
     .site-footer p { margin: 0; }
+    .site-footer p + p { margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -256,10 +340,14 @@
 
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="name" href="#home">【範例】2026 冬令營</a>
+      <!-- Logo 兼回首頁連結；正式 Logo 替換 files/logo.svg 即可 -->
+      <a class="brand" href="#home" aria-label="【範例】2026 冬令營 首頁">
+        <img src="files/logo.svg" alt="" width="40" height="40">
+        <span class="name">【範例】2026 冬令營</span>
+      </a>
       <nav class="site-nav" aria-label="頁面選單">
         <ul>
-          <li><a href="#home">首頁</a></li>
+          <li><a href="#about">關於我們</a></li>
           <li><a href="#notices">公告</a></li>
           <li><a href="#reg-rules">報名須知</a></li>
           <li><a href="#admitted">錄取名單</a></li>
@@ -270,11 +358,60 @@
     </div>
   </header>
 
-  <!-- 首頁分頁：基本資訊 + 報名 -->
-  <section class="hero" data-view="home" aria-labelledby="camp-title">
-    <div class="hero-inner">
-      <h1 id="camp-title">【範例】2026 冬令營</h1>
-      <p class="tagline">【範例】走進山林，一起探索、一起長大</p>
+  <!-- 首頁分頁：照片輪播
+       增減照片：複製或刪除一個 <li class="carousel-slide">…</li>；
+       張數、圓點、「第 N 張」標示由程式自動產生。
+       照片建議 1600×900（16:9）、壓縮到 300KB 以下；alt 寫照片內容，figcaption 可省略。 -->
+  <section class="carousel" data-view="home" aria-roledescription="carousel" aria-labelledby="camp-title">
+    <h1 id="camp-title" class="visually-hidden">【範例】2026 冬令營</h1>
+    <div class="carousel-viewport">
+      <div class="carousel-arrows">
+        <button type="button" data-direction="previous" aria-label="上一張照片">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" data-direction="next" aria-label="下一張照片">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <ul class="carousel-track" tabindex="0" aria-label="營隊照片（可左右滑動）">
+        <li class="carousel-slide">
+          <figure>
+            <img src="files/carousel/slide-1.svg" alt="【範例】學員在山林步道上合影" width="1600" height="900">
+            <figcaption>【範例】走進山林，一起探索、一起長大</figcaption>
+          </figure>
+        </li>
+        <li class="carousel-slide">
+          <figure>
+            <img src="files/carousel/slide-2.svg" alt="【範例】學員在溪邊觀察水中生物" width="1600" height="900" loading="lazy">
+            <figcaption>【範例】溪流生態觀察</figcaption>
+          </figure>
+        </li>
+        <li class="carousel-slide">
+          <figure>
+            <img src="files/carousel/slide-3.svg" alt="【範例】晚會時學員圍坐表演" width="1600" height="900" loading="lazy">
+            <figcaption>【範例】營火晚會</figcaption>
+          </figure>
+        </li>
+        <li class="carousel-slide">
+          <figure>
+            <img src="files/carousel/slide-4.svg" alt="【範例】小隊合作完成闖關任務" width="1600" height="900" loading="lazy">
+            <figcaption>【範例】小隊闖關</figcaption>
+          </figure>
+        </li>
+      </ul>
+    </div>
+    <div class="carousel-bar">
+      <button type="button" class="carousel-toggle"></button>
+      <div class="carousel-markers" role="group" aria-label="選擇照片"></div>
+    </div>
+    <p class="carousel-status visually-hidden" role="status" aria-live="polite"></p>
+  </section>
+
+  <main id="main" tabindex="-1">
+
+    <!-- 首頁分頁：報名小卡片（基本資訊 + 依 REG_OPEN／REG_CLOSE 切換的報名按鈕） -->
+    <section class="section register-card" data-view="home" aria-labelledby="register-title">
+      <h2 id="register-title">報名資訊</h2>
       <ul class="facts" aria-label="營隊基本資訊">
         <li><b>日期</b>【範例】2027/1/25（一）～ 1/28（四）</li>
         <li><b>地點</b>【範例】○○國小</li>
@@ -286,10 +423,7 @@
         <!-- 由程式依 REG_OPEN／REG_CLOSE 填入；以下為 JS 無法執行時的備用內容 -->
         <p class="register-status">請開啟 JavaScript 以查看報名狀態。</p>
       </div>
-    </div>
-  </section>
-
-  <main id="main" tabindex="-1">
+    </section>
 
     <!-- 首頁分頁：公告摘要（程式自動取前 3 則） -->
     <section class="section" data-view="home" aria-labelledby="digest-title">
@@ -307,6 +441,38 @@
         <li><a href="#camp-rules"><b>營隊注意事項</b><span>攜帶物品、活動規範、接送與請假</span></a></li>
         <li><a href="#checkin"><b>報到單下載</b><span>列印填寫後，報到當天交給工作人員</span></a></li>
       </ul>
+    </section>
+
+    <!-- 關於我們分頁（內容由 Alice 維護；每段一個 <div class="rule-group">，可增減） -->
+    <section class="section" data-view="about" aria-labelledby="about-title">
+      <h2 id="about-title">關於我們</h2>
+      <p class="lead">【範例】認識主辦單位與營隊的故事。</p>
+
+      <div class="rule-group">
+        <h3>主辦單位</h3>
+        <p>【範例】○○協會成立於 2010 年，長期陪伴偏鄉與社區孩子，透過戶外教育、品格培養與團體生活，讓孩子在安全的環境中探索自我、學習與人合作。</p>
+      </div>
+
+      <div class="rule-group">
+        <h3>營隊緣起</h3>
+        <p>【範例】2015 年，一群在地教師與志工發現孩子寒暑假缺少走出戶外的機會，於是開始舉辦營隊。我們相信「走進山林，一起探索、一起長大」，每一次的營隊都是孩子認識自然、也認識自己的起點。</p>
+        <p>【範例】營隊全程免費，經費來自社會大眾捐款與企業贊助，工作人員皆為受過訓練的志工。</p>
+      </div>
+
+      <div class="rule-group">
+        <h3>歷年辦理情形</h3>
+        <ul class="timeline">
+          <li><b>2015</b><span>【範例】第一屆夏令營，30 位學員參加</span></li>
+          <li><b>2019</b><span>【範例】增辦冬令營，擴大為兩個梯次</span></li>
+          <li><b>2024</b><span>【範例】累計服務超過 1,000 人次</span></li>
+          <li><b>2026</b><span>【範例】第 12 屆，持續陪伴孩子成長</span></li>
+        </ul>
+      </div>
+
+      <div class="rule-group">
+        <h3>我們的團隊</h3>
+        <p>【範例】營隊由營長、課程組、生活組、醫護組與攝影組共同組成，每 8 位學員配置 1 位小隊輔，全程陪伴孩子的生活與學習。</p>
+      </div>
     </section>
 
     <section class="section" data-view="notices" aria-labelledby="notices-title">
@@ -391,6 +557,7 @@
       <div>
         <h2 class="footer-title">主辦單位</h2>
         <p>【範例】主辦單位名稱</p>
+        <p><a href="#about">關於我們 →</a></p>
       </div>
     </div>
   </footer>
@@ -460,7 +627,8 @@
     views.forEach(function (v) {
       if (viewNames.indexOf(v.dataset.view) === -1) viewNames.push(v.dataset.view);
     });
-    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a'));
+    // 首頁不在選單中，由左上角 Logo（.brand）連回，一併標示目前分頁
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a, .topbar .brand'));
 
     // 網址可帶子路徑，例如 #admitted/2（錄取名單第 2 組）
     function hashParts() {
@@ -533,6 +701,154 @@
         box.appendChild(el('p', 'register-closed', '報名已截止'));
         box.appendChild(el('p', 'register-note', '感謝大家的支持，請持續留意最新公告。'));
       }
+    }
+
+    /* ---------------- 首頁照片輪播（F-21） ---------------- */
+
+    // 原生 scroll-snap 負責滑動與對齊；程式只負責按鈕、圓點、自動播放與語音提示。
+    // 沒有 JS 時照片仍可左右滑動（控制項隱藏）。
+    var CAROUSEL_INTERVAL_MS = 5000;
+
+    function initCarousel() {
+      var box = document.querySelector('.carousel');
+      if (!box) return;
+      var track = box.querySelector('.carousel-track');
+      var slides = Array.prototype.slice.call(track.children);
+      var total = slides.length;
+      if (total < 2) return; // 只有一張就不顯示控制項
+
+      var status = box.querySelector('.carousel-status');
+      var markersBox = box.querySelector('.carousel-markers');
+      var toggle = box.querySelector('.carousel-toggle');
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      var markers = slides.map(function (slide, i) {
+        slide.setAttribute('role', 'group');
+        slide.setAttribute('aria-roledescription', '照片');
+        slide.setAttribute('aria-label', '第 ' + (i + 1) + ' 張，共 ' + total + ' 張');
+        var b = el('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', '顯示第 ' + (i + 1) + ' 張照片');
+        b.addEventListener('click', function () { userAction(); goTo(i); });
+        markersBox.appendChild(b);
+        return b;
+      });
+
+      var settled = 0;       // 最後停妥的那張
+      var pending = null;    // 按鈕觸發、尚在捲動中的目標
+      var autoMove = false;  // 這次捲動是否由自動播放觸發（自動播放不發語音提示）
+      var lastUserAt = 0;
+
+      function nearest() {
+        var center = track.scrollLeft + track.clientWidth / 2;
+        var best = 0, bestDist = Infinity;
+        slides.forEach(function (s, i) {
+          var d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - center);
+          if (d < bestDist) { bestDist = d; best = i; }
+        });
+        return best;
+      }
+
+      function setMarker(i) {
+        markers.forEach(function (b, j) {
+          if (j === i) b.setAttribute('aria-current', 'true');
+          else b.removeAttribute('aria-current');
+        });
+      }
+
+      // 從最後一張按「下一張」會捲回第一張（反之亦然）
+      function goTo(i, isAuto) {
+        i = (i + total) % total;
+        autoMove = !!isAuto;
+        setMarker(i);
+        if (Math.abs(track.scrollLeft - slides[i].offsetLeft) < 2) { pending = null; return; }
+        pending = i;
+        track.scrollTo({ left: slides[i].offsetLeft, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+      }
+
+      function step(dir) { goTo((pending != null ? pending : nearest()) + dir); }
+
+      function onSettle() {
+        pending = null;
+        var i = nearest();
+        setMarker(i);
+        if (i !== settled) {
+          settled = i;
+          if (!autoMove) status.textContent = '第 ' + (i + 1) + ' 張，共 ' + total + ' 張';
+        }
+        autoMove = false;
+      }
+
+      // 捲動中即時更新圓點（每格動畫最多一次；按鈕觸發的捲動已先設好目標，不必重算）
+      var ticking = false, settleTimer = 0;
+      track.addEventListener('scroll', function () {
+        if (pending == null && !ticking) {
+          ticking = true;
+          requestAnimationFrame(function () { ticking = false; setMarker(nearest()); });
+        }
+        // 備援：scrollend 不支援或沒觸發時（部分瀏覽器的瞬間捲動），停止捲動 200ms 後視為停妥。
+        // onSettle 重複執行無副作用（同一張不會重複提示）。
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(onSettle, 200);
+      }, { passive: true });
+      track.addEventListener('scrollend', function () { clearTimeout(settleTimer); onSettle(); });
+
+      box.querySelector('[data-direction="previous"]').addEventListener('click', function () { userAction(); step(-1); });
+      box.querySelector('[data-direction="next"]').addEventListener('click', function () { userAction(); step(1); });
+      ['pointerdown', 'wheel', 'keydown'].forEach(function (type) {
+        track.addEventListener(type, userAction, { passive: true });
+      });
+
+      /* 自動播放：系統設定「減少動態效果」時預設不播放；
+         滑鼠移入、鍵盤焦點在輪播內、分頁切走或瀏覽器分頁隱藏時暫停。 */
+      var playing = !reduceMotion.matches;
+      var hovering = false, focusInside = false;
+
+      function userAction() { lastUserAt = Date.now(); autoMove = false; }
+
+      function renderToggle() {
+        toggle.replaceChildren();
+        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 12 12');
+        icon.setAttribute('aria-hidden', 'true');
+        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('fill', 'currentColor');
+        path.setAttribute('d', playing ? 'M2 1h3v10H2zM7 1h3v10H7z' : 'M2 1l9 5-9 5z');
+        icon.appendChild(path);
+        toggle.appendChild(icon);
+        toggle.appendChild(document.createTextNode(playing ? '暫停輪播' : '播放輪播'));
+        // 自動播放時關閉語音即時提示，避免一直被打斷
+        status.setAttribute('aria-live', playing ? 'off' : 'polite');
+      }
+
+      toggle.addEventListener('click', function () {
+        playing = !playing;
+        lastUserAt = Date.now();
+        renderToggle();
+      });
+      box.addEventListener('mouseenter', function () { hovering = true; });
+      box.addEventListener('mouseleave', function () { hovering = false; });
+      box.addEventListener('focusin', function (e) { focusInside = e.target !== toggle; });
+      box.addEventListener('focusout', function (e) {
+        if (!box.contains(e.relatedTarget)) focusInside = false;
+      });
+
+      setInterval(function () {
+        if (!playing || hovering || focusInside || document.hidden || box.hidden) return;
+        if (Date.now() - lastUserAt < CAROUSEL_INTERVAL_MS) return;
+        goTo(settled + 1, true);
+      }, CAROUSEL_INTERVAL_MS);
+
+      // 從其他分頁回到首頁時，軌道曾被隱藏，重新對齊圓點
+      window.addEventListener('hashchange', function () {
+        if (box.hidden) return;
+        settled = nearest();
+        setMarker(settled);
+      });
+
+      setMarker(0);
+      renderToggle();
+      box.classList.add('is-ready');
     }
 
     /* ---------------- 公告區（F-1 ～ F-7、F-10 ～ F-12） ---------------- */
@@ -983,6 +1299,7 @@
     syncTopbarHeight();
     window.addEventListener('resize', syncTopbarHeight);
 
+    initCarousel();
     renderRegister();
     setInterval(function () {
       renderRegister();   // 頁面開著跨過開放／截止時間時自動切換

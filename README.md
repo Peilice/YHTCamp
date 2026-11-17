@@ -10,6 +10,8 @@
 |---|---|
 | `index.html` | 整個網頁（HTML + CSS + JS） |
 | `files/checkin-form.jpg` | 報到單圖片（網頁直接顯示＋下載），目前為範例圖 |
+| `files/logo.svg` | 左上角 Logo（兼回首頁連結），目前為範例圖 |
+| `files/carousel/` | 首頁照片輪播的照片，目前為範例圖（`slide-1.svg`～`slide-4.svg`） |
 | `vendor/papaparse.min.js` | CSV 解析套件 PapaParse 5.4.1（MIT 授權），放在 repo 中不依賴 CDN |
 | `demo-data.csv` | demo 用的虛擬公告，涵蓋所有驗收測試情境 |
 | `demo-admitted.csv` | demo 用的虛擬錄取名單，954 筆、4 組（已遮蔽；列順序刻意打亂，含 2／3／4 字姓名、全形字、小寫、「男生」寫法、空白列） |
@@ -44,8 +46,11 @@ var ADMIT_SHOW_UNTIL = '2027-01-25T00:00:00+08:00'; // 名單顯示到何時（�
 
 | 要改的內容 | 在 `index.html` 中搜尋 |
 |---|---|
-| 營隊名稱、主辦單位、標語 | `<section class="hero"`（頂部列的 `class="name"` 也有營隊名稱） |
-| 日期、地點、對象、名額、費用 | `<ul class="facts"` |
+| 營隊名稱 | 頂部列 `class="brand"`（`aria-label` 與 `class="name"` 兩處）、首頁隱藏標題 `id="camp-title"` |
+| Logo | 替換 `files/logo.svg`（建議正方形；改用 PNG 時一併改 `<img src>`） |
+| 首頁照片輪播 | `<section class="carousel"`（見 1.5） |
+| 日期、地點、對象、名額、費用 | `<ul class="facts"`（首頁「報名資訊」卡片） |
+| 關於我們 | `data-view="about"`（每段一個 `<div class="rule-group">`，可增減；年表在 `<ul class="timeline">`） |
 | 首頁「參加前請先看」入口卡片的說明文字 | `<ul class="entries">` |
 | 營隊注意事項 | `data-view="camp-rules"`（每組一個 `<div class="rule-group">`，可增減） |
 | 報名注意事項 | `data-view="reg-rules"` |
@@ -66,12 +71,24 @@ var ADMIT_SHOW_UNTIL = '2027-01-25T00:00:00+08:00'; // 名單顯示到何時（�
 ### 1.4 分頁
 
 - 網頁上方的選單是分頁，一次只顯示一個分頁。網址 `#xxx` 會顯示所有 `data-view="xxx"` 的區塊，例如 `…/#notices` 顯示公告分頁
-- 「首頁」分頁（`data-view="home"`）由三個區塊組成：綠色大標（基本資訊＋報名）、最新公告摘要、入口卡片
+- 「首頁」分頁（`data-view="home"`）不在選單中，由左上角 Logo 連回；由四個區塊組成：照片輪播、報名資訊卡片（基本資訊＋報名按鈕）、最新公告摘要、入口卡片
 - 新增分頁：複製一個 `<section class="section" data-view="…">` 改成新名稱，並在 `<nav class="site-nav">` 加一個 `href="#新名稱"` 的連結
 - 預設分頁是 HTML 中第一個出現的 `data-view`（目前是 `home`）
 - 選單文字要短（2～4 個字），手機上才放得下；完整名稱寫在各分頁的標題
 
-### 1.5 用 GitHub 網頁直接修改（不需要裝任何軟體）
+### 1.5 更換輪播照片
+
+1. 準備照片：橫式 **16:9**（建議 1600×900），壓縮到 300KB 以下（可用 squoosh.app），檔名用英數字，例如 `2026-hike.jpg`
+2. 上傳到 `files/carousel/`（GitHub 網頁：進該資料夾 → Add file → Upload files）
+3. 在 `index.html` 的 `<ul class="carousel-track">` 中，每張照片是一個 `<li class="carousel-slide">…</li>`：複製一個來新增、刪除一個來移除，再改 `src`、`alt`
+4. `alt` 寫照片內容（例如「學員在溪邊觀察水中生物」）；`<figcaption>` 是照片下方的說明文字，不需要可整行刪除
+5. 第一張以外的 `<img>` 保留 `loading="lazy"`；第一張不要加
+6. 張數、圓點、「第 N 張」標示由程式自動產生，不用改；只剩一張時不顯示輪播按鈕
+7. **照片中有可辨識的學員時，須先取得家長同意**（repo 與網頁皆公開）
+
+輪播行為：每 5 秒自動換下一張（程式中 `CAROUSEL_INTERVAL_MS`）；滑鼠移入、鍵盤焦點在輪播內或按「暫停輪播」時停止；訪客系統設定「減少動態效果」時預設不自動播放。
+
+### 1.6 用 GitHub 網頁直接修改（不需要裝任何軟體）
 
 1. 到 repo 頁面點 `index.html` → 右上角鉛筆圖示（Edit this file）
 2. 用 `Ctrl+F` 找到要改的段落，修改文字

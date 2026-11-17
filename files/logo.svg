@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 範例 Logo：日後換成正式 Logo（建議正方形 SVG 或 PNG） -->
+  <rect width="64" height="64" rx="14" fill="#2F6B4F"/>
+  <circle cx="45" cy="19" r="6" fill="#F4D58D"/>
+  <path d="M6 50 L24 24 L34 38 L41 29 L58 50 Z" fill="#FFFFFF"/>
+  <path d="M24 24 L29 31 L26 30 L22 33 L20 30 Z" fill="#2F6B4F" opacity="0.25"/>
+</svg>
